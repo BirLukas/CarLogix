@@ -27,6 +27,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e7652d8f-3720-4482-b189-2eb32c5b79fc"
+      }
+    },
+    "owner": "birlukas"
   }
 }
