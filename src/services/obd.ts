@@ -27,12 +27,28 @@ export class OBDService {
   }
 
   public static getMockMetrics(): OBDLiveMetrics {
+    return this.getSimulatedMetrics();
+  }
+
+  /**
+   * Generates realistic simulated telemetry for demonstration
+   */
+  public static getSimulatedMetrics(): OBDLiveMetrics {
+    const randomRpmJitter = Math.floor(Math.random() * 80) - 40;
+    const rpm = Math.max(800, 2200 + randomRpmJitter);
+    const speed = Math.max(0, Math.floor(65 + Math.random() * 4));
+    const coolantTemp = 89;
+    const mafAirFlow = parseFloat((12.4 + (Math.random() * 0.8 - 0.4)).toFixed(1));
+    const currentConsumptionLPer100Km = parseFloat((5.8 + (Math.random() * 0.4 - 0.2)).toFixed(1));
+
     return {
-      rpm: 2150,
-      speed: 68,
-      coolantTemp: 88,
-      mapPressure: 45,
-      currentConsumptionLPer100Km: 5.6,
+      rpm,
+      speed,
+      coolantTemp,
+      mapPressure: 48,
+      mafAirFlow,
+      currentConsumptionLPer100Km,
+      idleConsumptionLPerHour: 0.8,
     };
   }
 }

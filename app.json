@@ -2,6 +2,7 @@
   "expo": {
     "name": "CarLogix",
     "slug": "carlogix",
+    "scheme": "carlogix",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,6 +34,9 @@
         "projectId": "e7652d8f-3720-4482-b189-2eb32c5b79fc"
       }
     },
-    "owner": "birlukas"
+    "owner": "birlukas",
+    "plugins": [
+      "expo-web-browser"
+    ]
   }
 }

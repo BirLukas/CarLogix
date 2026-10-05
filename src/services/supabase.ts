@@ -1,22 +1,24 @@
-/**
- * Supabase client configuration placeholder for CarLogix.
- * Environment variables EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY
- * will be loaded once @supabase/supabase-js is configured.
- */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-export interface SupabaseConfig {
-  url: string;
-  anonKey: string;
-}
-
-export const getSupabaseConfig = (): SupabaseConfig => {
-  return {
-    url: process.env.EXPO_PUBLIC_SUPABASE_URL || '',
-    anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-  };
-};
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder-carlogix.supabase.co';
+const supabaseKey =
+  process.env.EXPO_PUBLIC_SUPABASE_KEY ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  'placeholder-anon-key';
 
 export const isSupabaseConfigured = (): boolean => {
-  const config = getSupabaseConfig();
-  return Boolean(config.url && config.anonKey);
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const key = process.env.EXPO_PUBLIC_SUPABASE_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  return Boolean(url && key && !url.includes('placeholder'));
 };
+
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
