@@ -25,22 +25,40 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
   const { signUp, signInWithGoogle, isLoading } = useAuth();
 
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const hasMinLength = password.length >= 8;
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasDigit = /[0-9]/.test(password);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+  const isPasswordValid = hasMinLength && hasLower && hasUpper && hasDigit && hasSymbol;
+
   const handleRegister = async () => {
     setErrorMessage('');
-    if (!displayName.trim() || !email.trim() || !password) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password) {
       setErrorMessage('Vyplňte prosím všechna povinná pole.');
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMessage('Heslo musí mít alespoň 6 znaků.');
+    if (!isPasswordValid) {
+      if (!hasMinLength) {
+        setErrorMessage('Heslo musí mít alespoň 8 znaků.');
+      } else if (!hasUpper) {
+        setErrorMessage('Heslo musí obsahovat alespoň jedno velké písmeno (A-Z).');
+      } else if (!hasLower) {
+        setErrorMessage('Heslo musí obsahovat alespoň jedno malé písmeno (a-z).');
+      } else if (!hasDigit) {
+        setErrorMessage('Heslo musí obsahovat alespoň jednu číslici (0-9).');
+      } else if (!hasSymbol) {
+        setErrorMessage('Heslo musí obsahovat alespoň jeden symbol či speciální znak (např. !?@#*).');
+      }
       return;
     }
 
@@ -49,7 +67,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
       return;
     }
 
-    const res = await signUp(email.trim(), password, displayName.trim());
+    const displayName = `${firstName.trim()} ${lastName.trim()}`;
+    const res = await signUp(email.trim(), password, displayName);
     if (res.error) {
       setErrorMessage(res.error);
     }
@@ -84,15 +103,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
           {/* Form Card */}
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             {errorMessage ? (
-              <View style={[styles.errorBox, { backgroundColor: theme.danger + '20', borderColor: theme.danger }]}>
-                <Ionicons name="alert-circle" size={18} color={theme.danger} />
+              <View style={[styles.errorBox, { backgroundColor: theme.danger + '18', borderColor: theme.danger }]}>
+                <Ionicons name="alert-circle" size={20} color={theme.danger} />
                 <Text style={[styles.errorText, { color: theme.danger }]}>{errorMessage}</Text>
               </View>
             ) : null}
 
-            {/* Display name */}
+            {/* First name */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Jméno a příjmení</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Jméno</Text>
               <View
                 style={[
                   styles.inputContainer,
@@ -102,10 +121,30 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
                 <Ionicons name="person-outline" size={20} color={theme.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.textPrimary }]}
-                  placeholder="např. Jan Novák"
+                  placeholder="např. Jan"
                   placeholderTextColor={theme.textSecondary}
-                  value={displayName}
-                  onChangeText={setDisplayName}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                />
+              </View>
+            </View>
+
+            {/* Last name */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Příjmení</Text>
+              <View
+                style={[
+                  styles.inputContainer,
+                  { backgroundColor: theme.background, borderColor: theme.border },
+                ]}
+              >
+                <Ionicons name="person-outline" size={20} color={theme.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={[styles.input, { color: theme.textPrimary }]}
+                  placeholder="např. Novák"
+                  placeholderTextColor={theme.textSecondary}
+                  value={lastName}
+                  onChangeText={setLastName}
                 />
               </View>
             </View>
@@ -134,7 +173,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
 
             {/* Password */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Heslo (min. 6 znaků)</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Heslo (min. 8 znaků, A-Z, a-z, 0-9, symbol)</Text>
               <View
                 style={[
                   styles.inputContainer,
@@ -158,6 +197,64 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
                   />
                 </TouchableOpacity>
               </View>
+
+              {/* Dynamic Password Policy Rules */}
+              {password.length > 0 && (
+                <View style={[styles.rulesCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                  <View style={styles.rulesGrid}>
+                    <View style={styles.ruleItem}>
+                      <Ionicons
+                        name={hasMinLength ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={13}
+                        color={hasMinLength ? theme.success : theme.textSecondary}
+                      />
+                      <Text style={[styles.ruleText, { color: hasMinLength ? theme.success : theme.textSecondary }]}>
+                        Min. 8 znaků
+                      </Text>
+                    </View>
+                    <View style={styles.ruleItem}>
+                      <Ionicons
+                        name={hasUpper ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={13}
+                        color={hasUpper ? theme.success : theme.textSecondary}
+                      />
+                      <Text style={[styles.ruleText, { color: hasUpper ? theme.success : theme.textSecondary }]}>
+                        Velké písmeno (A-Z)
+                      </Text>
+                    </View>
+                    <View style={styles.ruleItem}>
+                      <Ionicons
+                        name={hasLower ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={13}
+                        color={hasLower ? theme.success : theme.textSecondary}
+                      />
+                      <Text style={[styles.ruleText, { color: hasLower ? theme.success : theme.textSecondary }]}>
+                        Malé písmeno (a-z)
+                      </Text>
+                    </View>
+                    <View style={styles.ruleItem}>
+                      <Ionicons
+                        name={hasDigit ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={13}
+                        color={hasDigit ? theme.success : theme.textSecondary}
+                      />
+                      <Text style={[styles.ruleText, { color: hasDigit ? theme.success : theme.textSecondary }]}>
+                        Číslice (0-9)
+                      </Text>
+                    </View>
+                    <View style={styles.ruleItem}>
+                      <Ionicons
+                        name={hasSymbol ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={13}
+                        color={hasSymbol ? theme.success : theme.textSecondary}
+                      />
+                      <Text style={[styles.ruleText, { color: hasSymbol ? theme.success : theme.textSecondary }]}>
+                        Symbol (!@#$...)
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* Confirm Password */}
@@ -181,11 +278,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
               </View>
             </View>
 
-            {/* Requirement note from PRD */}
+            {/* Requirement note */}
             <View style={styles.infoNote}>
               <Ionicons name="information-circle-outline" size={16} color={theme.accent} />
               <Text style={[styles.infoNoteText, { color: theme.textSecondary }]}>
-                Při registraci přes e-mail je vyžadováno potvrzení odkazu před odemčením databáze.
+                Po odeslání registrace obdržíte potvrzovací e-mail pro aktivaci vašeho účtu.
               </Text>
             </View>
 
@@ -288,7 +385,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     fontWeight: '600',
-    flex: 1,
+    lineHeight: 18,
   },
   inputGroup: {
     marginBottom: 14,
@@ -365,6 +462,27 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     fontSize: 15,
+    fontWeight: '600',
+  },
+  rulesCard: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+  },
+  rulesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  ruleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: '45%',
+  },
+  ruleText: {
+    fontSize: 11,
     fontWeight: '600',
   },
   footerSwitch: {

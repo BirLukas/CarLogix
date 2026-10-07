@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  AppState,
+  AppStateStatus,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -21,14 +24,36 @@ export const EmailVerificationScreen: React.FC = () => {
     user,
     checkEmailVerification,
     resendVerificationEmail,
-    simulateVerifyEmail,
     signOut,
-    isDemoMode,
+    signIn,
   } = useAuth();
 
   const [isChecking, setIsChecking] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+
+  // Manual password completion state
+  const [showManualLogin, setShowManualLogin] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Auto-check verification status when returning to app from email client / browser
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        try {
+          await checkEmailVerification();
+        } catch {
+          // Silent on automatic resume check
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [checkEmailVerification]);
 
   const handleCheck = async () => {
     setIsChecking(true);
@@ -36,10 +61,29 @@ export const EmailVerificationScreen: React.FC = () => {
     try {
       const verified = await checkEmailVerification();
       if (!verified) {
-        setFeedbackMessage('E-mail zatím nebyl potvrzen. Zkontrolujte prosím svoji doručenou poštu (i složku Spam).');
+        setFeedbackMessage(
+          'E-mail zatím nebyl potvrzen, nebo server ještě nezaregistroval změnu. Pokud jste již odkaz v e-mailu otevřeli, můžete níže zadat heslo a ihned vstoupit.'
+        );
       }
     } finally {
       setIsChecking(false);
+    }
+  };
+
+  const handleManualLogin = async () => {
+    if (!password) {
+      setFeedbackMessage('Zadejte prosím heslo k účtu.');
+      return;
+    }
+    setIsLoggingIn(true);
+    setFeedbackMessage(null);
+    try {
+      const res = await signIn(user?.email || '', password);
+      if (res.error) {
+        setFeedbackMessage(res.error);
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -58,11 +102,6 @@ export const EmailVerificationScreen: React.FC = () => {
     }
   };
 
-  const handleSimulate = () => {
-    simulateVerifyEmail();
-    Alert.alert('Ověřeno', 'E-mail byl v rámci demonstrace úspěšně označen jako ověřený.');
-  };
-
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -74,12 +113,25 @@ export const EmailVerificationScreen: React.FC = () => {
 
           <Text style={[styles.title, { color: theme.textPrimary }]}>Ověření e-mailu</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Podmínka školní směrnice: Před odemčením databáze a garáže je nutné potvrdit e-mailovou adresu.
+            Pro aktivaci účtu a přístup k vašim vozidlům prosím potvrďte svou e-mailovou adresu kliknutím na odkaz v e-mailu.
           </Text>
 
           <View style={[styles.emailBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Ionicons name="mail" size={16} color={theme.accent} />
             <Text style={[styles.emailText, { color: theme.textPrimary }]}>{user?.email || 'Váš e-mail'}</Text>
+          </View>
+        </View>
+
+        {/* Informative Hint about White Screen in Browser */}
+        <View style={[styles.infoBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Ionicons name="information-circle-outline" size={20} color={theme.accent} style={styles.infoBannerIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.infoBannerTitle, { color: theme.textPrimary }]}>
+              Bílá stránka v prohlížeči po potvrzení?
+            </Text>
+            <Text style={[styles.infoBannerText, { color: theme.textSecondary }]}>
+              Po kliknutí na odkaz v e-mailu Supabase adresu ověří a v prohlížeči se může ukázat prázdná stránka. To je v pořádku! Stačí se vrátit sem a klepnout na „Zkontrolovat stav ověření“.
+            </Text>
           </View>
         </View>
 
@@ -109,6 +161,70 @@ export const EmailVerificationScreen: React.FC = () => {
             )}
           </TouchableOpacity>
 
+          {/* Quick Manual Login without full sign-out */}
+          <View style={[styles.manualLoginCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity
+              style={styles.manualLoginHeader}
+              onPress={() => setShowManualLogin(!showManualLogin)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.manualLoginHeaderLeft}>
+                <Ionicons name="key-outline" size={18} color={theme.accent} />
+                <Text style={[styles.manualLoginTitle, { color: theme.textPrimary }]}>
+                  Máte odkaz potvrzený? Dokončit heslem
+                </Text>
+              </View>
+              <Ionicons
+                name={showManualLogin ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={theme.textSecondary}
+              />
+            </TouchableOpacity>
+
+            {showManualLogin && (
+              <View style={styles.manualLoginContent}>
+                <Text style={[styles.manualLoginDesc, { color: theme.textSecondary }]}>
+                  Pokud jste v e-mailu již klikli na odkaz, zadejte heslo a aplikace se ihned odemkne:
+                </Text>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    { backgroundColor: theme.background, borderColor: theme.border },
+                  ]}
+                >
+                  <Ionicons name="lock-closed-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
+                  <TextInput
+                    style={[styles.input, { color: theme.textPrimary }]}
+                    placeholder="Zadejte heslo"
+                    placeholderTextColor={theme.textSecondary}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={10}>
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color={theme.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={[styles.manualLoginBtn, { backgroundColor: theme.accent }]}
+                  onPress={handleManualLogin}
+                  disabled={isLoggingIn}
+                  activeOpacity={0.8}
+                >
+                  {isLoggingIn ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.manualLoginBtnText}>Přihlásit se a odemknout</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
           <TouchableOpacity
             style={[styles.secondaryButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={handleResend}
@@ -125,18 +241,6 @@ export const EmailVerificationScreen: React.FC = () => {
                 </Text>
               </>
             )}
-          </TouchableOpacity>
-
-          {/* Quick Demo Bypass for Project Defense */}
-          <TouchableOpacity
-            style={[styles.demoBypassButton, { backgroundColor: theme.success + '20', borderColor: theme.success }]}
-            onPress={handleSimulate}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="checkmark-done" size={18} color={theme.success} style={styles.buttonIcon} />
-            <Text style={[styles.demoBypassText, { color: theme.success }]}>
-              Simulovat potvrzení (Demo pro obhajobu)
-            </Text>
           </TouchableOpacity>
 
           {/* Sign Out option */}
@@ -156,14 +260,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 32,
     paddingBottom: 40,
     flexGrow: 1,
     justifyContent: 'center',
   },
   centerSection: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   iconRing: {
     width: 96,
@@ -172,7 +276,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
     fontSize: 26,
@@ -194,11 +298,31 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    marginTop: 18,
+    marginTop: 14,
   },
   emailText: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+    gap: 10,
+  },
+  infoBannerIcon: {
+    marginTop: 2,
+  },
+  infoBannerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  infoBannerText: {
+    fontSize: 12,
+    lineHeight: 17,
   },
   feedbackBox: {
     flexDirection: 'row',
@@ -207,7 +331,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   feedbackText: {
     fontSize: 13,
@@ -229,6 +353,63 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  manualLoginCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+  },
+  manualLoginHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  manualLoginHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    marginRight: 8,
+  },
+  manualLoginTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  manualLoginContent: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#cccccc33',
+  },
+  manualLoginDesc: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+  },
+  manualLoginBtn: {
+    height: 42,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  manualLoginBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   secondaryButton: {
     flexDirection: 'row',
     height: 50,
@@ -241,19 +422,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  demoBypassButton: {
-    flexDirection: 'row',
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  demoBypassText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
   buttonIcon: {
     marginRight: 8,
   },
@@ -261,8 +429,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 14,
-    marginTop: 10,
+    paddingVertical: 12,
+    marginTop: 6,
   },
   signOutText: {
     fontSize: 14,

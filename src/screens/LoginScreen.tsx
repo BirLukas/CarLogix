@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,6 +11,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
@@ -23,12 +24,24 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
-  const { signIn, signInWithGoogle, isLoading, isDemoMode } = useAuth();
+  const { signIn, signInWithGoogle, isLoading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const loadLastEmail = async () => {
+      try {
+        const last = await AsyncStorage.getItem('@carlogix_last_email');
+        if (last && !email) {
+          setEmail(last);
+        }
+      } catch {}
+    };
+    loadLastEmail();
+  }, []);
 
   const handleLogin = async () => {
     setErrorMessage('');
@@ -49,11 +62,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }
     if (res.error) {
       setErrorMessage(res.error);
     }
-  };
-
-  const handleFillDemo = () => {
-    setEmail('lukas.cernik@example.cz');
-    setPassword('Heslo123*');
   };
 
   return (
@@ -78,18 +86,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Přihlášení k účtu</Text>
 
-            {isDemoMode && (
-              <View style={[styles.demoBanner, { backgroundColor: theme.accent + '15', borderColor: theme.accent }]}>
-                <Ionicons name="information-circle" size={18} color={theme.accent} />
-                <Text style={[styles.demoText, { color: theme.accent }]}>
-                  Režim demonstrace (lokální autentizace)
-                </Text>
-              </View>
-            )}
-
             {errorMessage ? (
-              <View style={[styles.errorBox, { backgroundColor: theme.danger + '20', borderColor: theme.danger }]}>
-                <Ionicons name="alert-circle" size={18} color={theme.danger} />
+              <View style={[styles.errorBox, { backgroundColor: theme.danger + '18', borderColor: theme.danger }]}>
+                <Ionicons name="alert-circle" size={20} color={theme.danger} />
                 <Text style={[styles.errorText, { color: theme.danger }]}>{errorMessage}</Text>
               </View>
             ) : null}
@@ -177,15 +176,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }
                 Pokračovat přes Google
               </Text>
             </TouchableOpacity>
-
-            {/* Quick Demo Credentials Autofill */}
-            {isDemoMode && (
-              <TouchableOpacity style={styles.demoFillBtn} onPress={handleFillDemo}>
-                <Text style={[styles.demoFillText, { color: theme.accent }]}>
-                  Předvyplnit testovací účet
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           {/* Switch to Register */}
@@ -250,19 +240,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 16,
   },
-  demoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 14,
-    gap: 8,
-  },
-  demoText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -275,7 +252,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     fontWeight: '600',
-    flex: 1,
+    lineHeight: 18,
   },
   inputGroup: {
     marginBottom: 14,
@@ -340,14 +317,6 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     fontSize: 15,
-    fontWeight: '600',
-  },
-  demoFillBtn: {
-    marginTop: 12,
-    alignItems: 'center',
-  },
-  demoFillText: {
-    fontSize: 13,
     fontWeight: '600',
   },
   footerSwitch: {

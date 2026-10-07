@@ -26,7 +26,8 @@ export class VehicleService {
    * Načte seznam vozidel uživatele.
    */
   public static async getVehicles(userId: string): Promise<Vehicle[]> {
-    if (isSupabaseConfigured()) {
+    const isSupabaseUser = isSupabaseConfigured() && !userId.startsWith('demo-') && userId.includes('-');
+    if (isSupabaseUser) {
       const { data, error } = await supabase
         .from('vehicles')
         .select('*')
@@ -77,7 +78,8 @@ export class VehicleService {
    * Přidá nové vozidlo do garáže.
    */
   public static async addVehicle(vehicle: Omit<Vehicle, 'id'>): Promise<{ vehicle?: Vehicle; error?: string }> {
-    if (isSupabaseConfigured()) {
+    const isSupabaseUser = isSupabaseConfigured() && !vehicle.ownerId.startsWith('demo-') && vehicle.ownerId.includes('-');
+    if (isSupabaseUser) {
       const { data, error } = await supabase
         .from('vehicles')
         .insert({
@@ -141,7 +143,8 @@ export class VehicleService {
    * Smaže vozidlo z garáže.
    */
   public static async deleteVehicle(vehicleId: string): Promise<boolean> {
-    if (isSupabaseConfigured()) {
+    const isSupabase = isSupabaseConfigured() && !vehicleId.startsWith('local-') && !vehicleId.startsWith('peugeot-');
+    if (isSupabase) {
       const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId);
       return !error;
     } else {

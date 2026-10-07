@@ -109,7 +109,7 @@ export const AppNavigator: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
-  const { isLoading, isAuthenticated, isEmailVerified } = useAuth();
+  const { isInitializing, isAuthenticated, isEmailVerified } = useAuth();
 
   const navigationTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
@@ -123,8 +123,8 @@ export const AppNavigator: React.FC = () => {
     },
   };
 
-  // 1. Loading splash
-  if (isLoading) {
+  // 1. Initial loading splash (cold boot only)
+  if (isInitializing) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <View style={[styles.logoCircle, { backgroundColor: theme.accent }]}>
