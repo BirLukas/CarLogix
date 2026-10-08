@@ -33,8 +33,8 @@ export interface Vehicle {
 
 export interface FuelEntry {
   id: string;
-  vehicleId: string;
-  userId: string;
+  vehicleId?: string;
+  userId?: string;
   date: string;
   odometer: number;
   liters: number;
@@ -46,26 +46,38 @@ export interface FuelEntry {
 
 export interface ServicePart {
   name: string;
-  brand: string;
-  partNumber: string;
-  priceCzK: number;
+  brand?: string;
+  partNumber?: string;
+  priceCzK?: number;
 }
 
 export interface ServiceEntry {
   id: string;
-  vehicleId: string;
-  authorId: string;
-  authorRole: 'owner' | 'mechanic';
+  vehicleId?: string;
+  authorId?: string;
+  authorRole?: 'owner' | 'mechanic';
   workshopStamp?: string;
+  performer?: string;
   date: string;
   odometer: number;
   title: string;
-  description: string;
-  partsReplaced: ServicePart[];
+  description?: string;
+  partsReplaced?: ServicePart[];
+  partsSummary?: string;
+  materialPriceCzK?: number;
   laborPriceCzK: number;
   totalPriceCzK: number;
   invoiceImageUrl?: string;
-  isConfirmedByOwner: boolean;
+  isConfirmedByOwner?: boolean;
+}
+
+export interface BlacklistItem {
+  id: string;
+  partName: string;
+  brand: string;
+  partNumber?: string;
+  reason: string;
+  createdAt?: string;
 }
 
 export interface OBDLiveMetrics {

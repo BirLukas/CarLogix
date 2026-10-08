@@ -31,6 +31,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const hasMinLength = password.length >= 8;
@@ -273,8 +274,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
                   placeholderTextColor={theme.textSecondary}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry={!showPassword}
+                  secureTextEntry={!showConfirmPassword}
                 />
+                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} hitSlop={10}>
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={theme.textSecondary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
