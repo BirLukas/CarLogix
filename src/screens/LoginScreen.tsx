@@ -19,9 +19,10 @@ import { useAuth } from '../context/AuthContext';
 
 interface LoginScreenProps {
   onNavigateToRegister: () => void;
+  onBackToWelcome?: () => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, onBackToWelcome }) => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
   const { signIn, signInWithGoogle, isLoading } = useAuth();
@@ -71,6 +72,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {onBackToWelcome && (
+            <TouchableOpacity
+              onPress={onBackToWelcome}
+              style={styles.backButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
+            </TouchableOpacity>
+          )}
+
           {/* Brand header */}
           <View style={styles.brandHeader}>
             <View style={[styles.logoIconBg, { backgroundColor: theme.accent }]}>
@@ -200,9 +211,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 30,
+    paddingTop: 16,
     paddingBottom: 40,
     justifyContent: 'center',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   brandHeader: {
     alignItems: 'center',

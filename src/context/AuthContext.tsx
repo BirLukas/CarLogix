@@ -2,8 +2,16 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import * as AuthSession from 'expo-auth-session';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { User } from '../types';
+
+export const getAuthRedirectUrl = (): string => {
+  return AuthSession.makeRedirectUri({
+    scheme: 'carlogix',
+    path: 'auth/callback',
+  });
+};
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -68,31 +76,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const processAuthUrl = async (urlStr: string): Promise<{ error?: string; success?: boolean }> => {
     try {
       if (!urlStr) return {};
+      console.log('[Auth] Processing auth URL:', urlStr);
 
       const params: Record<string, string> = {};
-      const queryIdx = urlStr.indexOf('?');
-      const hashIdx = urlStr.indexOf('#');
-
-      const queryPart =
-        queryIdx !== -1
-          ? hashIdx !== -1
-            ? urlStr.substring(queryIdx + 1, hashIdx)
-            : urlStr.substring(queryIdx + 1)
-          : '';
-      const hashPart = hashIdx !== -1 ? urlStr.substring(hashIdx + 1) : '';
-
-      [queryPart, hashPart].forEach((part) => {
-        if (!part) return;
-        part.split('&').forEach((pair) => {
-          const [k, v] = pair.split('=');
-          if (k && v) {
-            params[decodeURIComponent(k)] = decodeURIComponent(v);
-          }
-        });
-      });
+      const regex = /[?&#]([^=#&]+)=([^&#]*)/g;
+      let match;
+      while ((match = regex.exec(urlStr)) !== null) {
+        try {
+          params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+        } catch {
+          params[match[1]] = match[2];
+        }
+      }
 
       if (params.error_description || params.error) {
-        return { error: params.error_description || params.error };
+        const errMsg = params.error_description || params.error;
+        console.error('[Auth] OAuth error param:', errMsg);
+        return { error: errMsg };
       }
 
       const code = params.code;
@@ -100,20 +100,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const refreshToken = params.refresh_token;
 
       if (code && isSupabaseConfigured()) {
+        console.log('[Auth] Exchanging PKCE code for session...');
         const { data: sessionData, error: sessionErr } =
           await supabase.auth.exchangeCodeForSession(code);
-        if (sessionErr) return { error: sessionErr.message };
+        if (sessionErr) {
+          console.error('[Auth] exchangeCodeForSession error:', sessionErr);
+          return { error: sessionErr.message };
+        }
         if (sessionData.user) {
           await mapSupabaseUser(sessionData.user);
           await AsyncStorage.removeItem(PENDING_AUTH_KEY);
         }
         return { success: true };
       } else if (accessToken && refreshToken && isSupabaseConfigured()) {
+        console.log('[Auth] Setting session with access & refresh tokens...');
         const { data: sessionData, error: sessionErr } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        if (sessionErr) return { error: sessionErr.message };
+        if (sessionErr) {
+          console.error('[Auth] setSession error:', sessionErr);
+          return { error: sessionErr.message };
+        }
         if (sessionData.user) {
           await mapSupabaseUser(sessionData.user);
           await AsyncStorage.removeItem(PENDING_AUTH_KEY);
@@ -132,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return {};
     } catch (err: any) {
-      console.error('Error processing auth URL:', err);
+      console.error('[Auth] Error processing auth URL:', err);
       return { error: err.message };
     }
   };
@@ -315,7 +323,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       if (isSupabaseConfigured()) {
-        const redirectUrl = Linking.createURL('auth/callback');
+        const redirectUrl = getAuthRedirectUrl();
+        console.log('[Auth] SignUp emailRedirectTo:', redirectUrl);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -386,7 +395,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       if (isSupabaseConfigured()) {
-        const redirectUrl = Linking.createURL('auth/callback');
+        const redirectUrl = getAuthRedirectUrl();
+        console.log('[Auth] Google OAuth redirectUrl:', redirectUrl);
 
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -396,10 +406,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           },
         });
 
-        if (error) return { error: error.message };
+        if (error) {
+          console.error('[Auth] signInWithOAuth error:', error);
+          return { error: error.message };
+        }
         if (!data?.url) return { error: 'Nepodařilo se vygenerovat přihlašovací odkaz.' };
 
+        console.log('[Auth] Launching WebBrowser auth session with URL:', data.url);
         const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+        console.log('[Auth] WebBrowser result type:', result.type);
 
         if (result.type === 'success' && result.url) {
           const res = await processAuthUrl(result.url);
@@ -502,9 +517,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user?.email) return { error: 'Není zadán žádný e-mail.' };
 
     if (isSupabaseConfigured()) {
+      const redirectUrl = getAuthRedirectUrl();
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
       });
       if (error) {
         const lower = error.message.toLowerCase();

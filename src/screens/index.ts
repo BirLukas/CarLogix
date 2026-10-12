@@ -8,4 +8,5 @@ export * from './TermsScreen';
 export * from './LoginScreen';
 export * from './RegisterScreen';
 export * from './EmailVerificationScreen';
+export * from './WelcomeScreen';
 export * from './AuthScreen';

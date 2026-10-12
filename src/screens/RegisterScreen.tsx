@@ -18,9 +18,10 @@ import { useAuth } from '../context/AuthContext';
 
 interface RegisterScreenProps {
   onNavigateToLogin: () => void;
+  onBackToWelcome?: () => void;
 }
 
-export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) => {
+export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin, onBackToWelcome }) => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
   const { signUp, signInWithGoogle, isLoading } = useAuth();
@@ -92,7 +93,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={onNavigateToLogin} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={onBackToWelcome || onNavigateToLogin}
+              style={styles.backButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
             </TouchableOpacity>
             <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>Vytvořit účet</Text>
