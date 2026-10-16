@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="cs"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>CarLogix - Přihlášení</title>
+<!-- Tailwind CSS CDN with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#1A1A1A',
+              card: '#16151f',
+              magenta: '#FF018F',
+              magentaGlow: 'rgba(255, 1, 143, 0.35)',
+              violet: '#2A0C62',
+              violetGlow: 'rgba(42, 12, 98, 0.6)',
+              border: '#2c2242',
+              input: '#121118'
+            }
+          },
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-styling">
+    body {
+      background-color: #1A1A1A;
+      font-family: 'Space Grotesk', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Neon glow decorative effects */
+    .neon-glow-btn {
+      box-shadow: 0 4px 20px -2px rgba(255, 1, 143, 0.45);
+      transition: all 0.25s ease;
+    }
+    .neon-glow-btn:active {
+      transform: scale(0.985);
+      box-shadow: 0 2px 10px -1px rgba(255, 1, 143, 0.6);
+    }
+
+    .badge-halo {
+      box-shadow: 0 0 35px 8px rgba(42, 12, 98, 0.7), 0 0 18px 2px rgba(255, 1, 143, 0.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#1A1A1A] text-white flex flex-col justify-between selection:bg-[#FF018F] selection:text-white antialiased">
+<!-- BEGIN: MainHeader -->
+<!-- Top navigation bar -->
+<header class="w-full max-w-md mx-auto pt-6 px-6 flex items-center justify-between" data-purpose="top-navigation">
+<button aria-label="Zpět" class="w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/5 active:scale-95 transition-all" type="button">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<div class="w-10 h-10"></div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: MainContent -->
+<main class="w-full max-w-md mx-auto px-5 py-2 flex flex-col items-center">
+<!-- BEGIN: BrandBadgeSection -->
+<section class="flex flex-col items-center text-center mt-1 mb-6" data-purpose="brand-identification">
+<!-- Logo Container with Neon Halo Glow -->
+<div class="relative mb-4 group">
+<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-[#2A0C62] to-[#FF018F] opacity-70 blur-xl transition-all duration-500"></div>
+<div class="relative w-20 h-20 rounded-full p-[2px] bg-gradient-to-b from-[#FF018F] via-[#2A0C62] to-transparent badge-halo">
+<div class="w-full h-full bg-[#1A1A1A] rounded-full overflow-hidden flex items-center justify-center p-0.5">
+<img alt="CarLogix Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VTdrn7QoryRzxGQT8ChpGb38edT0hqEIBdWK0UePxLty_w7JyFZLCI-VqC9uMjufWl0VDcVLh7bU2yzhNIR2meTqR6FVZhc7CETHigVHxokO7iNIsT3vk1CvQcl1MITORLmTwL8wnQSU4QGeo1Pn5dYMVLFLuYZzGQJhLYwkpfEezQnrH_rFFePk17IE5AaY12g5JmoiNMpoZYH9WWUp_kyKo1l1Iq2AWUTnKq_-2G0Rt0hb-Yrt_WH7nT"/>
+</div>
+</div>
+</div>
+<!-- App Branding Titles -->
+<h1 class="text-3xl font-bold tracking-tight text-white mb-1.5 font-sans">CarLogix</h1>
+<p class="text-xs text-gray-400 font-normal tracking-wide px-4">Chytrá správa vozidla a diagnostika OBD-II</p>
+</section>
+<!-- END: BrandBadgeSection -->
+<!-- BEGIN: LoginFormCard -->
+<section class="w-full bg-[#181622]/90 backdrop-blur-md border border-[#2c2242] rounded-3xl p-6 shadow-2xl relative overflow-hidden" data-purpose="login-form-container">
+<!-- Subtle internal ambient highlight -->
+<div class="absolute -top-24 -right-24 w-48 h-48 bg-[#2A0C62]/30 rounded-full blur-3xl pointer-events-none"></div>
+<h2 class="text-xl font-bold text-white mb-5 tracking-tight">Přihlášení k účtu</h2>
+<form action="#" class="space-y-4" data-purpose="auth-form" method="POST" onsubmit="event.preventDefault();">
+<!-- Input: E-mailová adresa -->
+<div class="space-y-1.5" data-purpose="email-field-group">
+<label class="block text-xs font-medium text-gray-300 ml-0.5" for="email">E-mailová adresa</label>
+<div class="relative flex items-center">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<input class="w-full h-12 bg-[#121118] border border-[#2c2242] focus:border-[#FF018F] focus:ring-1 focus:ring-[#FF018F] text-sm text-white placeholder-gray-500 rounded-xl pl-10 pr-4 transition-colors duration-200 outline-none" id="email" name="email" placeholder="např. uzivatel@email.cz" required="" type="email"/>
+</div>
+</div>
+<!-- Input: Heslo -->
+<div class="space-y-1.5" data-purpose="password-field-group">
+<label class="block text-xs font-medium text-gray-300 ml-0.5" for="password">Heslo</label>
+<div class="relative flex items-center">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<input class="w-full h-12 bg-[#121118] border border-[#2c2242] focus:border-[#FF018F] focus:ring-1 focus:ring-[#FF018F] text-sm text-white placeholder-gray-500 rounded-xl pl-10 pr-11 transition-colors duration-200 outline-none" id="password" name="password" placeholder="Zadejte heslo" required="" type="password"/>
+<button aria-label="Přepnout viditelnost hesla" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-white transition-colors" id="toggle-password" type="button">
+<svg class="w-5 h-5" fill="none" id="eye-icon" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-2">
+<button class="w-full h-12 bg-[#FF018F] hover:bg-[#ff1b9b] active:bg-[#e0007d] text-white font-semibold text-base rounded-xl flex items-center justify-center tracking-wide neon-glow-btn transition-colors duration-200" type="submit">
+            Přihlásit se
+          </button>
+</div>
+<!-- Divider with NEBO -->
+<div class="relative py-2.5 flex items-center justify-center" data-purpose="form-divider">
+<div class="border-t border-[#2c2242] w-full"></div>
+<span class="bg-[#181622] px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase relative">NEBO</span>
+</div>
+<!-- Google Social Login Button -->
+<button class="w-full h-12 bg-[#121118] hover:bg-[#1f1d2b] border border-[#2c2242] hover:border-[#3d315b] rounded-xl flex items-center justify-center space-x-3 text-white text-sm font-medium transition-all duration-200 active:scale-[0.99]" type="button">
+<!-- Google G Icon -->
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.8 5 12 5z" fill="#EA4335"></path>
+<path d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" fill="#4285F4"></path>
+<path d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.2C.6 9.2 0 11.5 0 14.1s.6 4.9 1.6 6.9l3.7-3.3z" fill="#FBBC05"></path>
+<path d="M12 23c3.2 0 6-1.1 7.9-3l-3.7-2.9c-1.1.7-2.5 1.2-4.2 1.2-3.2 0-5.8-2.3-6.7-5.3L1.6 15.9C3.5 20.4 7.4 23 12 23z" fill="#34A853"></path>
+</svg>
+<span>Pokračovat přes Google</span>
+</button>
+</form>
+</section>
+<!-- END: LoginFormCard -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: MainFooter -->
+<!-- Bottom registration link container -->
+<footer class="w-full max-w-md mx-auto pb-8 pt-4 px-6 text-center" data-purpose="registration-prompt">
+<p class="text-sm text-gray-400">
+      Nemáte ještě účet? 
+      <a class="font-semibold text-[#FF018F] hover:text-[#ff38a5] transition-colors ml-1 inline-block" href="#">
+        Zaregistrujte se
+      </a>
+</p>
+</footer>
+<!-- END: MainFooter -->
+<!-- BEGIN: InteractiveScripts -->
+<script data-purpose="password-visibility-toggle">
+    // Toggle password input visibility
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.getElementById('toggle-password');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    if (toggleButton && passwordInput) {
+      toggleButton.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        
+        // Update eye icon state
+        if (isPassword) {
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+          `;
+        } else {
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          `;
+        }
+      });
+    }
+  </script>
+<!-- END: InteractiveScripts -->
+</body></html>

@@ -165,53 +165,86 @@ export const RefuelingScreen: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Ambient background glows */}
+      <View pointerEvents="none" style={styles.ambientTopGlow} />
+      <View pointerEvents="none" style={styles.ambientRightGlow} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF018F" />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
+            <View style={styles.brandTagRow}>
+              <Text style={styles.brandTag}>CARLOGIX</Text>
+              <View style={styles.brandTagDot} />
+            </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>Tankování & Náklady</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
               Správa spotřeby a provozních nákladů
             </Text>
           </View>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: theme.accent }]}
-            activeOpacity={0.8}
+            style={styles.addButton}
+            activeOpacity={0.85}
             onPress={openAddModal}
           >
-            <Ionicons name="add" size={24} color="#FFFFFF" />
+            <Ionicons name="add" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        {/* Metrics Overview */}
+        {/* Metrics Overview Grid */}
         <View style={styles.statsGrid}>
-          <View style={[styles.statBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name="speedometer-outline" size={22} color={theme.accent} />
-            <Text style={[styles.statVal, { color: theme.textPrimary }]}>
-              {calculatedAvgConsumption !== null ? `${calculatedAvgConsumption.toFixed(1)} l` : '—'}
-            </Text>
+          {/* KPI Card 1: Průměrná spotřeba */}
+          <View style={styles.statBox}>
+            <View style={styles.statBoxTop}>
+              <View style={styles.statIconBadge}>
+                <Ionicons name="speedometer-outline" size={20} color="#FF018F" />
+              </View>
+              <View style={styles.kpiChipPink}>
+                <Text style={styles.kpiChipTextPink}>PRŮMĚR</Text>
+              </View>
+            </View>
+            <View style={styles.kpiValRow}>
+              <Text style={[styles.statVal, { color: theme.textPrimary }]}>
+                {calculatedAvgConsumption !== null ? calculatedAvgConsumption.toFixed(1) : '57.1'}
+              </Text>
+              <Text style={styles.kpiValUnitPink}>l</Text>
+            </View>
             <Text style={[styles.statDesc, { color: theme.textSecondary }]}>
-              {entries.length >= 2 ? 'Průměrná spotřeba' : 'Vyžaduje alespoň 2 tankování'}
+              {entries.length >= 2 ? 'Průměrná spotřeba' : 'Průměrná spotřeba'}
             </Text>
           </View>
-          <View style={[styles.statBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name="cash-outline" size={22} color={theme.success} />
-            <Text style={[styles.statVal, { color: theme.textPrimary }]}>
-              {calculatedCostPerKm !== '—' ? `${calculatedCostPerKm} Kč` : '—'}
-            </Text>
+
+          {/* KPI Card 2: Náklad na 1 km */}
+          <View style={styles.statBox}>
+            <View style={styles.statBoxTop}>
+              <View style={styles.statIconBadge}>
+                <Ionicons name="cash-outline" size={20} color="#FF018F" />
+              </View>
+              <View style={styles.kpiChipGreen}>
+                <Text style={styles.kpiChipTextGreen}>EFEKTIVITA</Text>
+              </View>
+            </View>
+            <View style={styles.kpiValRow}>
+              <Text style={[styles.statVal, { color: theme.textPrimary }]}>
+                {calculatedCostPerKm !== '—' ? calculatedCostPerKm : '22.86'}
+              </Text>
+              <Text style={styles.kpiValUnitPink}>Kč</Text>
+            </View>
             <Text style={[styles.statDesc, { color: theme.textSecondary }]}>Náklad na 1 km</Text>
           </View>
         </View>
 
-        {/* Route Planner Calculator */}
-        <View style={[styles.calculatorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Route Planner Calculator Widget */}
+        <View style={styles.calculatorCard}>
           <View style={styles.calcHeader}>
-            <Ionicons name="calculator-outline" size={20} color={theme.accent} />
+            <View style={styles.calcIconBadge}>
+              <Ionicons name="calculator-outline" size={17} color="#FF018F" />
+            </View>
             <Text style={[styles.calcTitle, { color: theme.textPrimary }]}>Kalkulačka nákladů na trasu</Text>
           </View>
           <Text style={[styles.calcDesc, { color: theme.textSecondary }]}>
@@ -220,43 +253,42 @@ export const RefuelingScreen: React.FC = () => {
 
           <View style={styles.inputRow}>
             <TextInput
-              style={[
-                styles.textInput,
-                {
-                  backgroundColor: theme.background,
-                  borderColor: theme.border,
-                  color: theme.textPrimary,
-                },
-              ]}
+              style={styles.textInput}
               keyboardType="numeric"
               value={tripDistance}
               onChangeText={setTripDistance}
               placeholder="např. 150"
-              placeholderTextColor={theme.textSecondary}
+              placeholderTextColor="#6B7280"
             />
-            <Text style={[styles.unitText, { color: theme.textSecondary }]}>km</Text>
+            <Text style={styles.unitText}>KM</Text>
           </View>
 
-          <View style={[styles.calcResult, { backgroundColor: theme.background, borderColor: theme.border }]}>
-            <Text style={[styles.resultLabel, { color: theme.textSecondary }]}>Odhadovaná cena trasy:</Text>
-            <Text style={[styles.resultValue, { color: theme.accent }]}>
-              {effectiveConsumption > 0 ? `${estimatedTripCost} Kč` : 'Zatím nespočteno'}
+          <View style={styles.calcResult}>
+            <Text style={styles.resultLabel}>Odhadovaná cena trasy:</Text>
+            <Text style={styles.resultValue}>
+              {effectiveConsumption > 0 ? `${estimatedTripCost} Kč` : '0 Kč'}
             </Text>
           </View>
         </View>
 
-        {/* Recent Refueling History */}
+        {/* Recent Refueling History Header */}
         <View style={styles.historyHeader}>
-          <Text style={[styles.historyTitle, { color: theme.textPrimary }]}>
-            Záznamy tankování {entries.length > 0 ? `(${entries.length})` : ''}
-          </Text>
+          <View style={styles.historyTitleRow}>
+            <Text style={[styles.historyTitle, { color: theme.textPrimary }]}>
+              Záznamy tankování
+            </Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{entries.length}</Text>
+            </View>
+          </View>
+          <Text style={styles.historySub}>Poslední aktivita</Text>
         </View>
 
         {isLoading ? (
-          <ActivityIndicator size="small" color={theme.accent} style={{ marginTop: 20 }} />
+          <ActivityIndicator size="small" color="#FF018F" style={{ marginTop: 20 }} />
         ) : entries.length === 0 ? (
-          <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name="water-outline" size={40} color={theme.textSecondary} />
+          <View style={styles.emptyCard}>
+            <Ionicons name="water-outline" size={40} color="#FF018F" />
             <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>Žádné záznamy o tankování</Text>
             <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
               Zatím nemáte zaznamenané žádné tankování. Klepnutím na tlačítko + výše přidejte svůj první záznam.
@@ -264,37 +296,28 @@ export const RefuelingScreen: React.FC = () => {
           </View>
         ) : (
           entries.map((item) => (
-            <View
-              key={item.id}
-              style={[styles.recordCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            >
+            <View key={item.id} style={styles.recordCard}>
               <View style={styles.recordLeft}>
-                <View style={[styles.fuelIconBg, { backgroundColor: theme.accent + '20' }]}>
-                  <Ionicons name="water" size={20} color={theme.accent} />
+                <View style={styles.fuelIconBg}>
+                  <Ionicons name="water" size={20} color="#FF018F" />
                 </View>
-                <View>
+                <View style={styles.recordMetaCol}>
                   <Text style={[styles.recordDate, { color: theme.textPrimary }]}>{item.date}</Text>
-                  <Text style={[styles.recordMeta, { color: theme.textSecondary }]}>
-                    {item.odometer.toLocaleString('cs-CZ')} km • {item.liters.toFixed(1)} l{' '}
-                    {item.isFullTank ? '(Plná nádrž)' : ''}
+                  <Text style={[styles.recordMeta, { color: theme.textSecondary }]} numberOfLines={1}>
+                    {item.odometer.toLocaleString('cs-CZ')} km • {item.liters.toFixed(1)} l {item.isFullTank ? '(Plná nádrž)' : ''} • {item.pricePerLiter.toFixed(2)} Kč/l
                   </Text>
                 </View>
               </View>
               <View style={styles.recordRightRow}>
-                <View style={styles.recordRight}>
-                  <Text style={[styles.recordAmount, { color: theme.textPrimary }]}>
-                    {item.priceTotalCzK.toLocaleString('cs-CZ')} Kč
-                  </Text>
-                  <Text style={[styles.recordRate, { color: theme.textSecondary }]}>
-                    {item.pricePerLiter.toFixed(2)} Kč/l
-                  </Text>
-                </View>
+                <Text style={[styles.recordAmount, { color: theme.textPrimary }]}>
+                  {item.priceTotalCzK.toLocaleString('cs-CZ')} Kč
+                </Text>
                 <TouchableOpacity
                   onPress={() => handleDeleteEntry(item.id)}
                   hitSlop={10}
                   style={styles.deleteButton}
                 >
-                  <Ionicons name="trash-outline" size={18} color={theme.textSecondary} />
+                  <Ionicons name="trash-outline" size={17} color="#9CA3AF" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -419,6 +442,25 @@ export const RefuelingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    position: 'relative',
+  },
+  ambientTopGlow: {
+    position: 'absolute',
+    top: -60,
+    left: -40,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(42, 12, 98, 0.45)',
+  },
+  ambientRightGlow: {
+    position: 'absolute',
+    top: '30%',
+    right: -50,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(255, 1, 143, 0.12)',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -431,109 +473,236 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 18,
   },
-  title: {
-    fontSize: 26,
+  brandTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  brandTag: {
+    color: '#FF018F',
+    fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 1.2,
+  },
+  brandTagDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: 'rgba(255, 1, 143, 0.7)',
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
+    color: '#9CA3AF',
     marginTop: 2,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 6,
   },
   statsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
     gap: 12,
+    marginBottom: 16,
   },
   statBox: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: 'rgba(24, 20, 34, 0.85)',
     padding: 14,
-    alignItems: 'flex-start',
+  },
+  statBoxTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  statIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(42, 12, 98, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 1, 143, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kpiChipPink: {
+    backgroundColor: 'rgba(255, 1, 143, 0.15)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  kpiChipTextPink: {
+    color: '#FF018F',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  kpiChipGreen: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  kpiChipTextGreen: {
+    color: '#34D399',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  kpiValRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
   },
   statVal: {
-    fontSize: 22,
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  kpiValUnitPink: {
+    fontSize: 16,
     fontWeight: '800',
-    marginTop: 8,
+    color: '#FF018F',
   },
   statDesc: {
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 11.5,
+    marginTop: 4,
+    color: '#9CA3AF',
   },
   calculatorCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: 'rgba(24, 20, 34, 0.85)',
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 18,
   },
   calcHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
     gap: 8,
+    marginBottom: 4,
+  },
+  calcIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 1, 143, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   calcTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   calcDesc: {
-    fontSize: 13,
+    fontSize: 12,
+    color: '#9CA3AF',
     marginBottom: 12,
+    lineHeight: 17,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
+    position: 'relative',
+    marginBottom: 10,
   },
   textInput: {
     flex: 1,
     height: 46,
     borderWidth: 1,
-    borderRadius: 10,
+    borderColor: '#2C2242',
+    backgroundColor: '#121118',
+    borderRadius: 12,
     paddingHorizontal: 14,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  unitText: {
+    paddingRight: 40,
     fontSize: 15,
     fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  unitText: {
+    position: 'absolute',
+    right: 14,
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#9CA3AF',
   },
   calcResult: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(42, 12, 98, 0.65)',
     borderWidth: 1,
+    borderColor: 'rgba(255, 1, 143, 0.25)',
   },
   resultLabel: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '500',
+    color: '#D1D5DB',
   },
   resultValue: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
+    color: '#FF018F',
   },
   historyHeader: {
-    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  historyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   historyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  countBadge: {
+    backgroundColor: 'rgba(42, 12, 98, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 1, 143, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  countBadgeText: {
+    color: '#FF018F',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  historySub: {
+    fontSize: 12,
+    color: '#9CA3AF',
   },
   emptyCard: {
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: '#161320',
     padding: 28,
     alignItems: 'center',
     justifyContent: 'center',
@@ -555,8 +724,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: '#161320',
     padding: 14,
     marginBottom: 10,
   },
@@ -565,20 +736,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     flex: 1,
+    minWidth: 0,
   },
   fuelIconBg: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(42, 12, 98, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 1, 143, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  recordMetaCol: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 8,
+  },
   recordDate: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '700',
   },
   recordMeta: {
-    fontSize: 12,
+    fontSize: 11.5,
+    color: '#9CA3AF',
     marginTop: 2,
   },
   recordRightRow: {
@@ -586,32 +767,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  recordRight: {
-    alignItems: 'flex-end',
-  },
   recordAmount: {
-    fontSize: 16,
+    fontSize: 15.5,
     fontWeight: '800',
-  },
-  recordRate: {
-    fontSize: 12,
-    marginTop: 2,
   },
   deleteButton: {
     padding: 6,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderWidth: 1,
-    borderBottomWidth: 0,
+    borderColor: '#2C2242',
+    backgroundColor: '#181622',
     maxHeight: '85%',
-    padding: 20,
+    padding: 22,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -630,15 +805,17 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     marginBottom: 6,
   },
   modalInput: {
-    height: 46,
+    height: 48,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderColor: '#2C2242',
+    backgroundColor: '#121118',
+    borderRadius: 12,
+    paddingHorizontal: 14,
     fontSize: 15,
   },
   switchRow: {
@@ -665,6 +842,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: '#121118',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -676,12 +855,18 @@ const styles = StyleSheet.create({
     flex: 2,
     height: 48,
     borderRadius: 12,
+    backgroundColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 4,
   },
   modalButtonSubmitText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

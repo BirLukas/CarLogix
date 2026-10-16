@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html lang="cs"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>CarLogix - Tankování &amp; Náklady</title>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#1A1A1A',
+            brandMagenta: '#FF018F',
+            brandPurple: '#2A0C62',
+            brandPurpleDark: '#19063c',
+            brandMuted: '#9CA3AF'
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', 'Roboto', 'sans-serif']
+          },
+          boxShadow: {
+            'glow-pink': '0 0 25px -4px rgba(255, 1, 143, 0.45)',
+            'card-elevated': '0 10px 30px -10px rgba(42, 12, 98, 0.4)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Glass & Component Styles -->
+<style data-purpose="custom-glassmorphism">
+    /* Subtle glass backdrop with dark violet hue */
+    .glass-card {
+      background: linear-gradient(145deg, rgba(42, 12, 98, 0.45) 0%, rgba(26, 26, 26, 0.85) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 1, 143, 0.15);
+    }
+    
+    .glass-card-focus:focus-within {
+      border-color: rgba(255, 1, 143, 0.6);
+      box-shadow: 0 0 16px -2px rgba(255, 1, 143, 0.35);
+    }
+
+    .glass-input {
+      background: rgba(18, 10, 36, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .glass-input:focus {
+      border-color: #FF018F;
+      box-shadow: 0 0 0 1px #FF018F;
+    }
+
+    /* iOS safe areas */
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+    .pt-safe {
+      padding-top: env(safe-area-inset-top, 16px);
+    }
+  </style>
+<!-- END: Custom Glass & Component Styles -->
+</head>
+<body class="bg-[#1A1A1A] text-white font-sans antialiased selection:bg-[#FF018F] selection:text-white min-h-screen flex justify-center items-start">
+<!-- Mobile Viewport Container -->
+<div class="w-full max-w-md min-h-screen flex flex-col justify-between relative overflow-hidden bg-[#1A1A1A] pb-24 border-x border-neutral-900/40">
+<!-- Ambient glowing accents behind elements -->
+<div class="absolute -top-24 -left-20 w-72 h-72 rounded-full bg-[#2A0C62]/60 blur-[90px] pointer-events-none"></div>
+<div class="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-[#FF018F]/15 blur-[100px] pointer-events-none"></div>
+<!-- BEGIN: MainContent -->
+<main class="px-5 pt-safe relative z-10 flex-1">
+<!-- BEGIN: HeaderSection -->
+<header class="flex items-center justify-between pt-4 pb-6" data-purpose="screen-header">
+<div class="space-y-1">
+<div class="flex items-center space-x-2">
+<span class="text-xs uppercase tracking-widest text-[#FF018F] font-semibold">CarLogix</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#FF018F]/60"></span>
+</div>
+<h1 class="text-2xl font-bold tracking-tight text-white leading-tight">Tankování &amp; Náklady</h1>
+<p class="text-xs text-brandMuted font-normal">Správa spotřeby a provozních nákladů</p>
+</div>
+<!-- Add Transaction Floating Style Button -->
+<button aria-label="Přidat záznam tankování" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#FF018F] to-[#ff47b4] text-white flex items-center justify-center shadow-glow-pink hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none" data-purpose="add-transaction-button" id="btn-add-record">
+<svg class="w-6 h-6 stroke-[2.5]" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</header>
+<!-- END: HeaderSection -->
+<!-- BEGIN: KpiMetricsGrid -->
+<section class="grid grid-cols-2 gap-3.5 mb-5" data-purpose="metrics-summary">
+<!-- KPI Card 1: Průměrná spotřeba -->
+<article class="glass-card rounded-2xl p-4 flex flex-col justify-between shadow-card-elevated relative overflow-hidden group">
+<div class="flex items-center justify-between mb-3">
+<span class="p-2.5 rounded-xl bg-[#2A0C62]/80 border border-[#FF018F]/25 text-[#FF018F]">
+<!-- Tachometer / Gauge Icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 6V4m0 2a8 8 0 108 8M12 6a8 8 0 00-8 8m13.657-2.343l-1.414 1.414M12 12l3-3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<span class="text-[10px] uppercase font-semibold tracking-wider text-[#FF018F]/80 bg-[#FF018F]/10 px-2 py-0.5 rounded-full">Průměr</span>
+</div>
+<div>
+<div class="text-2xl font-black tracking-tight text-white flex items-baseline gap-1">
+<span>57.1</span>
+<span class="text-base font-semibold text-[#FF018F]">l</span>
+</div>
+<p class="text-xs text-brandMuted mt-0.5">Průměrná spotřeba</p>
+</div>
+</article>
+<!-- KPI Card 2: Náklad na 1 km -->
+<article class="glass-card rounded-2xl p-4 flex flex-col justify-between shadow-card-elevated relative overflow-hidden group">
+<div class="flex items-center justify-between mb-3">
+<span class="p-2.5 rounded-xl bg-[#2A0C62]/80 border border-[#FF018F]/25 text-[#FF018F]">
+<!-- Banknote Cash Icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="12" rx="2" stroke-linecap="round" stroke-linejoin="round" width="20" x="2" y="6"></rect>
+<circle cx="12" cy="12" r="2.5" stroke-linecap="round" stroke-linejoin="round"></circle>
+<path d="M6 12h.01M18 12h.01" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<span class="text-[10px] uppercase font-semibold tracking-wider text-emerald-400/90 bg-emerald-500/10 px-2 py-0.5 rounded-full">Efektivita</span>
+</div>
+<div>
+<div class="text-2xl font-black tracking-tight text-white flex items-baseline gap-1">
+<span>22.86</span>
+<span class="text-base font-semibold text-[#FF018F]">Kč</span>
+</div>
+<p class="text-xs text-brandMuted mt-0.5">Náklad na 1 km</p>
+</div>
+</article>
+</section>
+<!-- END: KpiMetricsGrid -->
+<!-- BEGIN: RouteCostCalculatorWidget -->
+<section class="glass-card glass-card-focus rounded-2xl p-4.5 mb-6 shadow-card-elevated transition-all duration-200" data-purpose="trip-cost-calculator">
+<!-- Widget Header -->
+<div class="flex items-center space-x-2.5 mb-2">
+<span class="w-7 h-7 rounded-lg bg-[#FF018F]/20 text-[#FF018F] flex items-center justify-center">
+<!-- Calculator icon -->
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="20" rx="3" width="16" x="4" y="2"></rect>
+<line stroke-linecap="round" x1="8" x2="16" y1="6" y2="6"></line>
+<line stroke-linecap="round" x1="8" x2="9" y1="10" y2="10"></line>
+<line stroke-linecap="round" x1="12" x2="13" y1="10" y2="10"></line>
+<line stroke-linecap="round" x1="16" x2="16" y1="10" y2="10"></line>
+<line stroke-linecap="round" x1="8" x2="9" y1="14" y2="14"></line>
+<line stroke-linecap="round" x1="12" x2="13" y1="14" y2="14"></line>
+<line stroke-linecap="round" x1="16" x2="16" y1="14" y2="14"></line>
+<line stroke-linecap="round" x1="8" x2="9" y1="18" y2="18"></line>
+<line stroke-linecap="round" x1="12" x2="13" y1="18" y2="18"></line>
+<line stroke-linecap="round" x1="16" x2="16" y1="18" y2="18"></line>
+</svg>
+</span>
+<h2 class="text-sm font-semibold text-white tracking-wide">Kalkulačka nákladů na trasu</h2>
+</div>
+<p class="text-xs text-brandMuted mb-3 leading-relaxed">
+          Zadejte plánovanou vzdálenost pro výpočet odhadu ceny paliva:
+        </p>
+<!-- Distance input element -->
+<div class="relative flex items-center mb-3">
+<input class="glass-input w-full rounded-xl px-3.5 py-2.5 text-white placeholder:text-neutral-500 font-medium text-sm focus:outline-none transition-colors" data-purpose="distance-input" id="route-distance-input" inputmode="numeric" placeholder="např. 150" type="number"/>
+<span class="absolute right-3.5 text-xs font-semibold text-brandMuted uppercase tracking-wider select-none">km</span>
+</div>
+<!-- Calculated Output Banner -->
+<div class="bg-[#2A0C62]/70 rounded-xl px-3.5 py-3 border border-[#FF018F]/20 flex items-center justify-between">
+<span class="text-xs font-medium text-neutral-300">Odhadovaná cena trasy:</span>
+<span class="text-base font-bold text-[#FF018F] tracking-tight" id="calculated-price">0 Kč</span>
+</div>
+</section>
+<!-- END: RouteCostCalculatorWidget -->
+<!-- BEGIN: FuelRecordsListSection -->
+<section class="mb-6" data-purpose="records-section">
+<div class="flex items-center justify-between mb-3 px-1">
+<h2 class="text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+            Záznamy tankování 
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[#2A0C62] text-[#FF018F] font-semibold border border-[#FF018F]/25">(2)</span>
+</h2>
+<span class="text-xs text-brandMuted">Poslední aktivita</span>
+</div>
+<div class="space-y-3">
+<!-- Record Card 1 -->
+<article class="glass-card rounded-2xl p-3.5 flex items-center justify-between group hover:border-[#FF018F]/40 transition-colors" data-purpose="fuel-record-item">
+<div class="flex items-center space-x-3 min-w-0">
+<!-- Drop Icon Badge -->
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2A0C62] to-[#1A1A1A] border border-[#FF018F]/30 flex-shrink-0 flex items-center justify-center text-[#FF018F] shadow-sm">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+</svg>
+</div>
+<!-- Content details -->
+<div class="min-w-0 pr-1">
+<div class="text-sm font-semibold text-white tracking-tight">8. 10. 2026</div>
+<div class="text-[11px] text-brandMuted truncate mt-0.5">
+                  99 965 km • 10.0 l (Plná nádrž) • 46.00 Kč/l
+                </div>
+</div>
+</div>
+<!-- Price and Delete action -->
+<div class="flex items-center space-x-3 flex-shrink-0 pl-2">
+<span class="text-sm font-bold text-white tracking-tight">460 Kč</span>
+<button aria-label="Odstranit záznam" class="text-neutral-500 hover:text-rose-400 active:text-rose-500 p-1.5 rounded-lg hover:bg-white/5 transition-colors" type="button">
+<!-- Trash can icon -->
+<svg class="w-4 h-4 stroke-[1.75]" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</article>
+<!-- Record Card 2 -->
+<article class="glass-card rounded-2xl p-3.5 flex items-center justify-between group hover:border-[#FF018F]/40 transition-colors" data-purpose="fuel-record-item">
+<div class="flex items-center space-x-3 min-w-0">
+<!-- Drop Icon Badge -->
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2A0C62] to-[#1A1A1A] border border-[#FF018F]/30 flex-shrink-0 flex items-center justify-center text-[#FF018F] shadow-sm">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+</svg>
+</div>
+<!-- Content details -->
+<div class="min-w-0 pr-1">
+<div class="text-sm font-semibold text-white tracking-tight">8. 10. 2026</div>
+<div class="text-[11px] text-brandMuted truncate mt-0.5">
+                  100 000 km • 20.0 l • 40.00 Kč/l
+                </div>
+</div>
+</div>
+<!-- Price and Delete action -->
+<div class="flex items-center space-x-3 flex-shrink-0 pl-2">
+<span class="text-sm font-bold text-white tracking-tight">800 Kč</span>
+<button aria-label="Odstranit záznam" class="text-neutral-500 hover:text-rose-400 active:text-rose-500 p-1.5 rounded-lg hover:bg-white/5 transition-colors" type="button">
+<!-- Trash can icon -->
+<svg class="w-4 h-4 stroke-[1.75]" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</article>
+</div>
+</section>
+<!-- END: FuelRecordsListSection -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: BottomNavigationBar -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none" data-purpose="bottom-navigation">
+<div class="w-full max-w-md bg-[#160633]/90 backdrop-blur-xl border-t border-[#FF018F]/20 pb-safe pointer-events-auto px-3 py-2 flex items-center justify-between shadow-[0_-8px_30px_rgba(0,0,0,0.6)]">
+<!-- Tab 1: Garáž -->
+<a class="flex flex-col items-center flex-1 py-1 text-neutral-400 hover:text-neutral-200 transition-colors" href="#garaz">
+<svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M3 10l9-7 9 7v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M9 21V12h6v9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Garáž</span>
+</a>
+<!-- Tab 2: Tankování (Active) -->
+<a class="flex flex-col items-center flex-1 py-1 text-[#FF018F] transition-colors relative" href="#tankovani">
+<div class="relative">
+<svg class="w-5 h-5 mb-1 fill-current" viewbox="0 0 24 24">
+<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+</svg>
+<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#FF018F] rounded-full shadow-glow-pink"></span>
+</div>
+<span class="text-[10px] font-bold tracking-tight">Tankování</span>
+</a>
+<!-- Tab 3: Servis -->
+<a class="flex flex-col items-center flex-1 py-1 text-neutral-400 hover:text-neutral-200 transition-colors" href="#servis">
+<svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Servis</span>
+</a>
+<!-- Tab 4: Telemetrie -->
+<a class="flex flex-col items-center flex-1 py-1 text-neutral-400 hover:text-neutral-200 transition-colors" href="#telemetrie">
+<svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M12 6V4m0 2a8 8 0 108 8M12 6a8 8 0 00-8 8m13.657-2.343l-1.414 1.414M12 12l3-3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Telemetrie</span>
+</a>
+<!-- Tab 5: Nastavení -->
+<a class="flex flex-col items-center flex-1 py-1 text-neutral-400 hover:text-neutral-200 transition-colors" href="#nastaveni">
+<svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path>
+<circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"></circle>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Nastavení</span>
+</a>
+</div>
+</nav>
+<!-- END: BottomNavigationBar -->
+</div>
+<!-- BEGIN: Calculator Logic Script -->
+<script data-purpose="cost-calculator">
+    // Cost per km derived from snapshot metrics (22.86 Kč / km)
+    const COST_PER_KM = 22.86;
+    const distanceInput = document.getElementById('route-distance-input');
+    const priceDisplay = document.getElementById('calculated-price');
+
+    if (distanceInput && priceDisplay) {
+      distanceInput.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+          const totalCost = Math.round(val * COST_PER_KM);
+          priceDisplay.textContent = `${totalCost.toLocaleString('cs-CZ')} Kč`;
+        } else {
+          priceDisplay.textContent = '0 Kč';
+        }
+      });
+    }
+  </script>
+<!-- END: Calculator Logic Script -->
+</body></html>

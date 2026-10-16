@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -67,25 +68,38 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Ambient background glows */}
+      <View pointerEvents="none" style={styles.ambientTopGlow} />
+      <View pointerEvents="none" style={styles.ambientRightGlow} />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {onBackToWelcome && (
             <TouchableOpacity
               onPress={onBackToWelcome}
               style={styles.backButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
+              <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           )}
 
-          {/* Brand header */}
+          {/* Brand header with Neon Halo & CarLogix_Logo.png */}
           <View style={styles.brandHeader}>
-            <View style={[styles.logoIconBg, { backgroundColor: theme.accent }]}>
-              <Ionicons name="speedometer" size={32} color="#FFFFFF" />
+            <View style={styles.haloGlowContainer}>
+              <View style={styles.outerGlowCircle} />
+              <View style={styles.badgeRing}>
+                <View style={styles.badgeInner}>
+                  <Image
+                    source={require('../CarLogix_Logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
             </View>
             <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>CarLogix</Text>
             <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
@@ -93,13 +107,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
             </Text>
           </View>
 
-          {/* Login Card */}
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {/* Login Card with glassmorphism border */}
+          <View style={styles.card}>
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Přihlášení k účtu</Text>
 
             {errorMessage ? (
               <View style={[styles.errorBox, { backgroundColor: theme.danger + '18', borderColor: theme.danger }]}>
-                <Ionicons name="alert-circle" size={20} color={theme.danger} />
+                <Ionicons name="alert-circle" size={18} color={theme.danger} />
                 <Text style={[styles.errorText, { color: theme.danger }]}>{errorMessage}</Text>
               </View>
             ) : null}
@@ -107,17 +121,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
             {/* Email field */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: theme.textSecondary }]}>E-mailová adresa</Text>
-              <View
-                style={[
-                  styles.inputContainer,
-                  { backgroundColor: theme.background, borderColor: theme.border },
-                ]}
-              >
-                <Ionicons name="mail-outline" size={20} color={theme.textSecondary} style={styles.inputIcon} />
+              <View style={styles.inputContainer}>
+                <Ionicons name="mail-outline" size={19} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.textPrimary }]}
                   placeholder="např. uzivatel@email.cz"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor="#6B7280"
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -129,17 +138,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
             {/* Password field */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: theme.textSecondary }]}>Heslo</Text>
-              <View
-                style={[
-                  styles.inputContainer,
-                  { backgroundColor: theme.background, borderColor: theme.border },
-                ]}
-              >
-                <Ionicons name="lock-closed-outline" size={20} color={theme.textSecondary} style={styles.inputIcon} />
+              <View style={styles.inputContainer}>
+                <Ionicons name="lock-closed-outline" size={19} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.textPrimary }]}
                   placeholder="Zadejte heslo"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor="#6B7280"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -148,7 +152,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={theme.textSecondary}
+                    color="#9CA3AF"
                   />
                 </TouchableOpacity>
               </View>
@@ -156,10 +160,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 
             {/* Submit Button */}
             <TouchableOpacity
-              style={[styles.submitButton, { backgroundColor: theme.accent }]}
+              style={styles.submitButton}
               onPress={handleLogin}
               disabled={isLoading}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" />
@@ -170,20 +174,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 
             {/* Divider */}
             <View style={styles.dividerRow}>
-              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-              <Text style={[styles.dividerText, { color: theme.textSecondary }]}>nebo</Text>
-              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>NEBO</Text>
+              <View style={styles.dividerLine} />
             </View>
 
             {/* Google Sign-In Button */}
             <TouchableOpacity
-              style={[styles.googleButton, { backgroundColor: theme.background, borderColor: theme.border }]}
+              style={styles.googleButton}
               onPress={handleGoogleLogin}
               disabled={isLoading}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
               <Ionicons name="logo-google" size={18} color="#EA4335" style={styles.googleIcon} />
-              <Text style={[styles.googleButtonText, { color: theme.textPrimary }]}>
+              <Text style={styles.googleButtonText}>
                 Pokračovat přes Google
               </Text>
             </TouchableOpacity>
@@ -192,8 +196,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
           {/* Switch to Register */}
           <View style={styles.footerSwitch}>
             <Text style={[styles.footerText, { color: theme.textSecondary }]}>Nemáte ještě účet? </Text>
-            <TouchableOpacity onPress={onNavigateToRegister}>
-              <Text style={[styles.footerLink, { color: theme.accent }]}>Zaregistrujte se</Text>
+            <TouchableOpacity onPress={onNavigateToRegister} activeOpacity={0.7}>
+              <Text style={styles.footerLink}>Zaregistrujte se</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -205,63 +209,127 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    position: 'relative',
+  },
+  ambientTopGlow: {
+    position: 'absolute',
+    top: -60,
+    left: -40,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(42, 12, 98, 0.5)',
+  },
+  ambientRightGlow: {
+    position: 'absolute',
+    top: '30%',
+    right: -50,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(255, 1, 143, 0.12)',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 40,
+    paddingTop: 12,
+    paddingBottom: 36,
     justifyContent: 'center',
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 6,
   },
   brandHeader: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  logoIconBg: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  haloGlowContainer: {
+    position: 'relative',
+    width: 86,
+    height: 86,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
+  outerGlowCircle: {
+    position: 'absolute',
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    backgroundColor: 'rgba(42, 12, 98, 0.8)',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  badgeRing: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    padding: 2,
+    backgroundColor: '#2A0C62',
+    borderWidth: 1.5,
+    borderColor: '#FF018F',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 37,
+    backgroundColor: '#121118',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    padding: 6,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+  },
   brandTitle: {
-    fontSize: 28,
+    fontSize: 29,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   brandSubtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     marginTop: 4,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderColor: '#2C2242',
+    backgroundColor: 'rgba(24, 22, 34, 0.95)',
+    padding: 22,
+    shadowColor: '#2A0C62',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 6,
   },
   cardTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     marginBottom: 16,
+    letterSpacing: -0.2,
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     marginBottom: 14,
     gap: 8,
@@ -270,20 +338,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 18,
+    flex: 1,
   },
   inputGroup: {
     marginBottom: 14,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     marginBottom: 6,
+    marginLeft: 2,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 10,
+    borderColor: '#2C2242',
+    backgroundColor: '#121118',
+    borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
   },
@@ -292,19 +364,26 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14.5,
   },
   submitButton: {
-    borderRadius: 10,
+    borderRadius: 12,
     height: 48,
+    backgroundColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 6,
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 6,
   },
   submitButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   dividerRow: {
     flexDirection: 'row',
@@ -314,38 +393,45 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
+    backgroundColor: '#2C2242',
   },
   dividerText: {
     marginHorizontal: 12,
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#9CA3AF',
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 48,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: '#121118',
   },
   googleIcon: {
     marginRight: 10,
   },
   googleButtonText: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
   footerSwitch: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 22,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 13.5,
   },
   footerLink: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#FF018F',
   },
 });
+

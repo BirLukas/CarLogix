@@ -191,22 +191,29 @@ export const ServiceBookScreen: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Ambient background glows */}
+      <View style={styles.ambientTopGlow} pointerEvents="none" />
+      <View style={styles.ambientRightGlow} pointerEvents="none" />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.neonPink} />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
+            <View style={styles.brandRow}>
+              <Text style={styles.brandTag}>CARLOGIX • SERVIS</Text>
+            </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>Servis & Údržba</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Digitální servisní kniha a díly
+              Digitální servisní kniha a blacklist dílů
             </Text>
           </View>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: theme.accent }]}
+            style={[styles.addButton, { backgroundColor: theme.neonPink }]}
             activeOpacity={0.8}
             onPress={openAddModal}
           >
@@ -215,11 +222,11 @@ export const ServiceBookScreen: React.FC = () => {
         </View>
 
         {/* Tab switcher: Historie vs Blacklist */}
-        <View style={[styles.tabBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.tabBar, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
           <TouchableOpacity
             style={[
               styles.tabItem,
-              activeTab === 'history' && { backgroundColor: theme.accent },
+              activeTab === 'history' && { backgroundColor: theme.neonPink },
             ]}
             onPress={() => setActiveTab('history')}
             activeOpacity={0.8}
@@ -268,8 +275,8 @@ export const ServiceBookScreen: React.FC = () => {
         ) : activeTab === 'history' ? (
           <View style={styles.contentSection}>
             {serviceEntries.length === 0 ? (
-              <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <Ionicons name="construct-outline" size={40} color={theme.textSecondary} />
+              <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
+                <Ionicons name="construct-outline" size={40} color={theme.neonPink} />
                 <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>Žádné servisní záznamy</Text>
                 <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
                   Zatím zde nemáte evidovány žádné servisní úkony. Klepnutím na tlačítko + přidejte novou servisní prohlídku nebo opravu.
@@ -279,7 +286,7 @@ export const ServiceBookScreen: React.FC = () => {
               serviceEntries.map((item) => (
                 <View
                   key={item.id}
-                  style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
                 >
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
@@ -310,11 +317,11 @@ export const ServiceBookScreen: React.FC = () => {
                     </View>
                   ) : null}
 
-                  <View style={[styles.cardFooter, { borderTopColor: theme.border }]}>
+                  <View style={[styles.cardFooter, { borderTopColor: theme.cardBorder }]}>
                     <Text style={[styles.costLabel, { color: theme.textSecondary }]}>
                       Materiál: {(item.materialPriceCzK || 0).toLocaleString('cs-CZ')} Kč | Práce: {(item.laborPriceCzK || 0).toLocaleString('cs-CZ')} Kč
                     </Text>
-                    <Text style={[styles.totalCost, { color: theme.textPrimary }]}>
+                    <Text style={[styles.totalCost, { color: theme.neonPink }]}>
                       {item.totalPriceCzK.toLocaleString('cs-CZ')} Kč
                     </Text>
                   </View>
@@ -324,16 +331,16 @@ export const ServiceBookScreen: React.FC = () => {
           </View>
         ) : (
           <View style={styles.contentSection}>
-            <View style={[styles.blacklistWarningCard, { backgroundColor: theme.danger + '15', borderColor: theme.danger }]}>
+            <View style={[styles.blacklistWarningCard, { backgroundColor: '#2A0C6240', borderColor: theme.danger }]}>
               <Ionicons name="information-circle" size={22} color={theme.danger} />
-              <Text style={[styles.blacklistWarningText, { color: theme.danger }]}>
+              <Text style={[styles.blacklistWarningText, { color: '#FFA4A4' }]}>
                 Díly na tomto seznamu se neosvědčily nebo nepasovaly. AI vyhledávač vás před jejich koupí automaticky varuje.
               </Text>
             </View>
 
             {blacklist.length === 0 ? (
-              <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <Ionicons name="shield-checkmark-outline" size={40} color={theme.textSecondary} />
+              <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
+                <Ionicons name="shield-checkmark-outline" size={40} color={theme.neonPink} />
                 <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>Blacklist je prázdný</Text>
                 <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
                   Nemáte evidovány žádné nevyhovující díly. Nekvalitní nebo nepasující díly můžete přidat tlačítkem + výše.
@@ -343,7 +350,7 @@ export const ServiceBookScreen: React.FC = () => {
               blacklist.map((item) => (
                 <View
                   key={item.id}
-                  style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
                 >
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
@@ -371,7 +378,7 @@ export const ServiceBookScreen: React.FC = () => {
       {/* Modal: Přidat servisní záznam */}
       <Modal visible={serviceModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.modalCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>Přidat servisní záznam</Text>
               <TouchableOpacity onPress={() => setServiceModalVisible(false)} hitSlop={10}>
@@ -385,7 +392,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceTitle}
                   onChangeText={setServiceTitle}
@@ -399,7 +406,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceDate}
                   onChangeText={setServiceDate}
@@ -413,7 +420,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceOdometer}
                   onChangeText={setServiceOdometer}
@@ -428,7 +435,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={servicePerformer}
                   onChangeText={setServicePerformer}
@@ -442,7 +449,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceMaterialPrice}
                   onChangeText={setServiceMaterialPrice}
@@ -457,7 +464,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceLaborPrice}
                   onChangeText={setServiceLaborPrice}
@@ -472,7 +479,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInputMulti,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={servicePartsText}
                   onChangeText={setServicePartsText}
@@ -486,14 +493,14 @@ export const ServiceBookScreen: React.FC = () => {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.modalButtonCancel, { borderColor: theme.border }]}
+                style={[styles.modalButtonCancel, { borderColor: theme.cardBorder }]}
                 onPress={() => setServiceModalVisible(false)}
                 disabled={isSavingService}
               >
                 <Text style={[styles.modalButtonCancelText, { color: theme.textSecondary }]}>Zrušit</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButtonSubmit, { backgroundColor: theme.accent }]}
+                style={[styles.modalButtonSubmit, { backgroundColor: theme.neonPink }]}
                 onPress={handleSaveService}
                 disabled={isSavingService}
               >
@@ -511,7 +518,7 @@ export const ServiceBookScreen: React.FC = () => {
       {/* Modal: Přidat díl na Blacklist */}
       <Modal visible={blacklistModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.modalCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>Přidat díl na Blacklist</Text>
               <TouchableOpacity onPress={() => setBlacklistModalVisible(false)} hitSlop={10}>
@@ -525,7 +532,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={blPartName}
                   onChangeText={setBlPartName}
@@ -539,7 +546,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInput,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={blBrand}
                   onChangeText={setBlBrand}
@@ -553,7 +560,7 @@ export const ServiceBookScreen: React.FC = () => {
                 <TextInput
                   style={[
                     styles.modalInputMulti,
-                    { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
+                    { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={blReason}
                   onChangeText={setBlReason}
@@ -567,7 +574,7 @@ export const ServiceBookScreen: React.FC = () => {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.modalButtonCancel, { borderColor: theme.border }]}
+                style={[styles.modalButtonCancel, { borderColor: theme.cardBorder }]}
                 onPress={() => setBlacklistModalVisible(false)}
                 disabled={isSavingBlacklist}
               >
@@ -596,25 +603,54 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  ambientTopGlow: {
+    position: 'absolute',
+    top: -60,
+    left: '20%',
+    width: 220,
+    height: 160,
+    borderRadius: 110,
+    backgroundColor: '#2A0C62',
+    opacity: 0.45,
+  },
+  ambientRightGlow: {
+    position: 'absolute',
+    top: 120,
+    right: -40,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#FF018F',
+    opacity: 0.15,
+  },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 28,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 32,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  brandRow: {
+    marginBottom: 4,
+  },
+  brandTag: {
+    color: '#FF018F',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
   },
   title: {
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 13,
-    marginTop: 2,
+    marginTop: 3,
   },
   addButton: {
     width: 44,
@@ -622,13 +658,18 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 6,
   },
   tabBar: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     padding: 4,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   tabItem: {
     flex: 1,
@@ -636,27 +677,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 10,
     gap: 6,
   },
   tabText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   contentSection: {
-    gap: 12,
+    gap: 14,
   },
   emptyCard: {
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 28,
+    padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
   },
   emptyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     marginTop: 12,
   },
   emptyDesc: {
@@ -667,9 +708,9 @@ const styles = StyleSheet.create({
     maxWidth: 290,
   },
   card: {
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 16,
+    padding: 18,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -687,12 +728,12 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
   },
   cardMeta: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 3,
   },
   badgeSuccess: {
     paddingHorizontal: 8,
@@ -701,7 +742,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   partsList: {
     marginBottom: 12,
@@ -716,20 +757,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 10,
+    paddingTop: 12,
   },
   costLabel: {
     fontSize: 12,
     flex: 1,
   },
   totalCost: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '900',
   },
   blacklistWarningCard: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     borderWidth: 1,
     gap: 10,
     alignItems: 'center',
@@ -738,7 +779,7 @@ const styles = StyleSheet.create({
   blacklistWarningText: {
     flex: 1,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     lineHeight: 18,
   },
   blacklistBrand: {
@@ -752,26 +793,26 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderWidth: 1,
     borderBottomWidth: 0,
     maxHeight: '85%',
-    padding: 20,
+    padding: 22,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   modalTitle: {
-    fontSize: 19,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
   },
   modalBody: {
     marginBottom: 16,
@@ -781,22 +822,22 @@ const styles = StyleSheet.create({
   },
   modalLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 6,
   },
   modalInput: {
-    height: 46,
+    height: 48,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    paddingHorizontal: 14,
     fontSize: 15,
   },
   modalInputMulti: {
-    minHeight: 70,
+    minHeight: 74,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingTop: 10,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingTop: 12,
     fontSize: 15,
     textAlignVertical: 'top',
   },
@@ -806,7 +847,7 @@ const styles = StyleSheet.create({
   },
   modalButtonCancel: {
     flex: 1,
-    height: 48,
+    height: 50,
     borderRadius: 12,
     borderWidth: 1,
     justifyContent: 'center',
@@ -818,14 +859,19 @@ const styles = StyleSheet.create({
   },
   modalButtonSubmit: {
     flex: 2,
-    height: 48,
+    height: 50,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   modalButtonSubmitText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

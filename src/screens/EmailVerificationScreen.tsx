@@ -4,6 +4,7 @@ import {
   Alert,
   AppState,
   AppStateStatus,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -104,11 +105,24 @@ export const EmailVerificationScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Ambient glowing backdrop */}
+      <View pointerEvents="none" style={styles.ambientTopGlow} />
+      <View pointerEvents="none" style={styles.ambientRightGlow} />
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Verification Icon Box */}
+        {/* Verification Icon Box with CarLogix Logo */}
         <View style={styles.centerSection}>
-          <View style={[styles.iconRing, { backgroundColor: theme.warning + '20', borderColor: theme.warning }]}>
-            <Ionicons name="mail-unread" size={48} color={theme.warning} />
+          <View style={styles.haloGlowContainer}>
+            <View style={styles.outerGlowCircle} />
+            <View style={styles.badgeRing}>
+              <View style={styles.badgeInner}>
+                <Image
+                  source={require('../CarLogix_Logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
           </View>
 
           <Text style={[styles.title, { color: theme.textPrimary }]}>Ověření e-mailu</Text>
@@ -116,15 +130,15 @@ export const EmailVerificationScreen: React.FC = () => {
             Pro aktivaci účtu a přístup k vašim vozidlům prosím potvrďte svou e-mailovou adresu kliknutím na odkaz v e-mailu.
           </Text>
 
-          <View style={[styles.emailBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name="mail" size={16} color={theme.accent} />
+          <View style={[styles.emailBadge, { backgroundColor: '#181622', borderColor: '#2C2242' }]}>
+            <Ionicons name="mail" size={16} color="#FF018F" />
             <Text style={[styles.emailText, { color: theme.textPrimary }]}>{user?.email || 'Váš e-mail'}</Text>
           </View>
         </View>
 
         {/* Informative Hint about White Screen in Browser */}
-        <View style={[styles.infoBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Ionicons name="information-circle-outline" size={20} color={theme.accent} style={styles.infoBannerIcon} />
+        <View style={[styles.infoBanner, { backgroundColor: '#181622', borderColor: '#2C2242' }]}>
+          <Ionicons name="information-circle-outline" size={20} color="#FF018F" style={styles.infoBannerIcon} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.infoBannerTitle, { color: theme.textPrimary }]}>
               Bílá stránka v prohlížeči po potvrzení?
@@ -137,8 +151,8 @@ export const EmailVerificationScreen: React.FC = () => {
 
         {/* Feedback Alert */}
         {feedbackMessage && (
-          <View style={[styles.feedbackBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Ionicons name="information-circle" size={20} color={theme.accent} />
+          <View style={[styles.feedbackBox, { backgroundColor: '#181622', borderColor: '#2C2242' }]}>
+            <Ionicons name="information-circle" size={20} color="#FF018F" />
             <Text style={[styles.feedbackText, { color: theme.textPrimary }]}>{feedbackMessage}</Text>
           </View>
         )}
@@ -257,10 +271,29 @@ export const EmailVerificationScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    position: 'relative',
+  },
+  ambientTopGlow: {
+    position: 'absolute',
+    top: -60,
+    left: -40,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(42, 12, 98, 0.45)',
+  },
+  ambientRightGlow: {
+    position: 'absolute',
+    top: '35%',
+    right: -50,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(255, 1, 143, 0.12)',
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     paddingBottom: 40,
     flexGrow: 1,
     justifyContent: 'center',
@@ -269,26 +302,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  iconRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 2,
+  haloGlowContainer: {
+    position: 'relative',
+    width: 86,
+    height: 86,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
+  },
+  outerGlowCircle: {
+    position: 'absolute',
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    backgroundColor: 'rgba(42, 12, 98, 0.8)',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  badgeRing: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    padding: 2,
+    backgroundColor: '#2A0C62',
+    borderWidth: 1.5,
+    borderColor: '#FF018F',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 37,
+    backgroundColor: '#121118',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    padding: 6,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 26,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: -0.2,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13.5,
     textAlign: 'center',
     lineHeight: 20,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
   },
   emailBadge: {
     flexDirection: 'row',
@@ -306,17 +376,17 @@ const styles = StyleSheet.create({
   },
   infoBanner: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 12,
-    marginBottom: 16,
+    padding: 14,
+    marginBottom: 14,
     gap: 10,
   },
   infoBannerIcon: {
     marginTop: 2,
   },
   infoBannerTitle: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -328,10 +398,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     gap: 10,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   feedbackText: {
     fontSize: 13,
@@ -344,19 +414,27 @@ const styles = StyleSheet.create({
   primaryButton: {
     flexDirection: 'row',
     height: 50,
-    borderRadius: 12,
+    borderRadius: 14,
+    backgroundColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 6,
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 15.5,
+    fontWeight: '800',
   },
   manualLoginCard: {
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 12,
+    borderColor: '#2C2242',
+    backgroundColor: '#181622',
+    padding: 14,
   },
   manualLoginHeader: {
     flexDirection: 'row',
@@ -372,14 +450,14 @@ const styles = StyleSheet.create({
   },
   manualLoginTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
   },
   manualLoginContent: {
     marginTop: 12,
     paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#cccccc33',
+    borderTopWidth: 1,
+    borderTopColor: '#2C2242',
   },
   manualLoginDesc: {
     fontSize: 12,
@@ -390,6 +468,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: '#121118',
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 44,
@@ -400,27 +480,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   manualLoginBtn: {
-    height: 42,
-    borderRadius: 8,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
   },
   manualLoginBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 13.5,
+    fontWeight: '800',
   },
   secondaryButton: {
     flexDirection: 'row',
-    height: 50,
-    borderRadius: 12,
+    height: 48,
+    borderRadius: 14,
     borderWidth: 1,
+    borderColor: '#2C2242',
+    backgroundColor: '#181622',
     justifyContent: 'center',
     alignItems: 'center',
   },
   secondaryButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   buttonIcon: {
     marginRight: 8,
@@ -435,5 +519,7 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#F87171',
   },
 });
+

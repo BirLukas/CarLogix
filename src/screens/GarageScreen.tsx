@@ -118,9 +118,13 @@ export const GarageScreen: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Ambient background glows */}
+      <View pointerEvents="none" style={styles.ambientTopGlow} />
+      <View pointerEvents="none" style={styles.ambientRightGlow} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF018F" />}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -131,11 +135,11 @@ export const GarageScreen: React.FC = () => {
             <Text style={[styles.title, { color: theme.textPrimary }]}>Moje Garáž</Text>
           </View>
           <TouchableOpacity
-            style={[styles.avatarBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={styles.addButton}
             onPress={() => setModalVisible(true)}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Ionicons name="add" size={24} color={theme.accent} />
+            <Ionicons name="add" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -376,6 +380,7 @@ export const GarageScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    position: 'relative',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -388,29 +393,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  ambientTopGlow: {
+    position: 'absolute',
+    top: -60,
+    left: -40,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(42, 12, 98, 0.45)',
+  },
+  ambientRightGlow: {
+    position: 'absolute',
+    top: '30%',
+    right: -50,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(255, 1, 143, 0.12)',
+  },
   greeting: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13.5,
+    fontWeight: '600',
   },
   title: {
-    fontSize: 28,
+    fontSize: 27,
     fontWeight: '800',
     marginTop: 2,
-    letterSpacing: 0.3,
+    letterSpacing: -0.2,
   },
-  avatarBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
+  addButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    backgroundColor: '#FF018F',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6,
   },
   heroCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 16,
+    borderColor: '#332352',
+    backgroundColor: 'rgba(24, 20, 34, 0.95)',
+    padding: 18,
     marginBottom: 20,
+    shadowColor: '#2A0C62',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    elevation: 6,
   },
   heroTop: {
     flexDirection: 'row',
@@ -419,10 +454,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   vehicleBrand: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11.5,
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
+    color: '#FF018F',
   },
   vehicleName: {
     fontSize: 22,

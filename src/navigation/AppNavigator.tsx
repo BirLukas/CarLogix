@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -24,7 +24,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const TabNavigator: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
 
   // Dynamic bottom inset to prevent overlapping with system navigation buttons (e.g. Samsung 3-button bar)
@@ -35,19 +36,25 @@ const TabNavigator: React.FC = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.accent,
-        tabBarInactiveTintColor: theme.textSecondary,
+        tabBarActiveTintColor: '#FF018F',
+        tabBarInactiveTintColor: isDark ? '#9CA3AF' : '#64748B',
         tabBarStyle: {
-          backgroundColor: theme.surface,
-          borderTopColor: theme.border,
-          borderTopWidth: StyleSheet.hairlineWidth,
+          backgroundColor: isDark ? '#160633' : theme.surface,
+          borderTopColor: isDark ? 'rgba(255, 1, 143, 0.25)' : theme.border,
+          borderTopWidth: 1,
           height: tabHeight,
           paddingBottom: bottomInset,
           paddingTop: 6,
+          elevation: 10,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 12,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          fontSize: 10.5,
+          fontWeight: '700',
+          marginTop: 2,
         },
       }}
     >
@@ -119,19 +126,25 @@ export const AppNavigator: React.FC = () => {
       card: theme.surface,
       text: theme.textPrimary,
       border: theme.border,
-      primary: theme.accent,
+      primary: '#FF018F',
     },
   };
 
-  // 1. Initial loading splash (cold boot only)
+  // 1. Initial loading splash (cold boot only) with CarLogix_Logo.png
   if (isInitializing) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <View style={[styles.logoCircle, { backgroundColor: theme.accent }]}>
-          <Ionicons name="speedometer" size={36} color="#FFFFFF" />
+        <View style={styles.splashHalo}>
+          <View style={styles.splashInner}>
+            <Image
+              source={require('../CarLogix_Logo.png')}
+              style={styles.splashLogo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <Text style={[styles.appName, { color: theme.textPrimary }]}>CarLogix</Text>
-        <ActivityIndicator size="large" color={theme.accent} style={{ marginTop: 24 }} />
+        <ActivityIndicator size="large" color="#FF018F" style={{ marginTop: 24 }} />
       </View>
     );
   }
@@ -187,17 +200,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  splashHalo: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#2A0C62',
+    borderWidth: 2,
+    borderColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 18,
+    elevation: 8,
+    padding: 3,
+  },
+  splashInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 42,
+    backgroundColor: '#121118',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    padding: 6,
+  },
+  splashLogo: {
+    width: '100%',
+    height: '100%',
   },
   appName: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
 });
+
