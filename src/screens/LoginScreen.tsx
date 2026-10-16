@@ -25,7 +25,8 @@ interface LoginScreenProps {
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, onBackToWelcome }) => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const { signIn, signInWithGoogle, isLoading } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -69,8 +70,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient background glows */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientRightGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -80,17 +81,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
           {onBackToWelcome && (
             <TouchableOpacity
               onPress={onBackToWelcome}
-              style={styles.backButton}
+              style={[
+                styles.backButton,
+                {
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                },
+              ]}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={22} color={theme.textPrimary} />
             </TouchableOpacity>
           )}
 
           {/* Brand header with Neon Halo & CarLogix_Logo.png */}
           <View style={styles.brandHeader}>
             <View style={styles.haloGlowContainer}>
-              <View style={styles.outerGlowCircle} />
+              <View style={[styles.outerGlowCircle, { backgroundColor: isDark ? 'rgba(42, 12, 98, 0.8)' : 'rgba(255, 1, 143, 0.15)' }]} />
               <View style={styles.badgeRing}>
                 <View style={styles.badgeInner}>
                   <Image
@@ -108,7 +114,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
           </View>
 
           {/* Login Card with glassmorphism border */}
-          <View style={styles.card}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadowColor,
+                shadowOpacity: theme.shadowOpacity,
+              },
+            ]}
+          >
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Přihlášení k účtu</Text>
 
             {errorMessage ? (
@@ -121,12 +137,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
             {/* Email field */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: theme.textSecondary }]}>E-mailová adresa</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={19} color="#9CA3AF" style={styles.inputIcon} />
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                <Ionicons name="mail-outline" size={19} color={theme.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.textPrimary }]}
                   placeholder="např. uzivatel@email.cz"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={theme.textSecondary}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -138,12 +162,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
             {/* Password field */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: theme.textSecondary }]}>Heslo</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={19} color="#9CA3AF" style={styles.inputIcon} />
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                <Ionicons name="lock-closed-outline" size={19} color={theme.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.textPrimary }]}
                   placeholder="Zadejte heslo"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={theme.textSecondary}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -152,7 +184,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color="#9CA3AF"
+                    color={theme.textSecondary}
                   />
                 </TouchableOpacity>
               </View>
@@ -174,20 +206,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister, 
 
             {/* Divider */}
             <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>NEBO</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+              <Text style={[styles.dividerText, { color: theme.textSecondary }]}>NEBO</Text>
+              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
             </View>
 
             {/* Google Sign-In Button */}
             <TouchableOpacity
-              style={styles.googleButton}
+              style={[
+                styles.googleButton,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.border,
+                },
+              ]}
               onPress={handleGoogleLogin}
               disabled={isLoading}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-google" size={18} color="#EA4335" style={styles.googleIcon} />
-              <Text style={styles.googleButtonText}>
+              <Text style={[styles.googleButtonText, { color: theme.textPrimary }]}>
                 Pokračovat přes Google
               </Text>
             </TouchableOpacity>

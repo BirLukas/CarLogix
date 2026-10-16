@@ -20,7 +20,8 @@ import { ServiceEntry, BlacklistItem } from '../types';
 
 export const ServiceBookScreen: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
 
   const [activeTab, setActiveTab] = useState<'history' | 'blacklist'>('history');
   const [serviceEntries, setServiceEntries] = useState<ServiceEntry[]>([]);
@@ -192,8 +193,8 @@ export const ServiceBookScreen: React.FC = () => {
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient background glows */}
-      <View style={styles.ambientTopGlow} pointerEvents="none" />
-      <View style={styles.ambientRightGlow} pointerEvents="none" />
+      <View style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary, opacity: 1 }]} pointerEvents="none" />
+      <View style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary, opacity: 1 }]} pointerEvents="none" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -331,9 +332,17 @@ export const ServiceBookScreen: React.FC = () => {
           </View>
         ) : (
           <View style={styles.contentSection}>
-            <View style={[styles.blacklistWarningCard, { backgroundColor: '#2A0C6240', borderColor: theme.danger }]}>
+            <View
+              style={[
+                styles.blacklistWarningCard,
+                {
+                  backgroundColor: isDark ? '#2A0C6240' : 'rgba(239, 68, 68, 0.08)',
+                  borderColor: isDark ? theme.danger : 'rgba(239, 68, 68, 0.3)',
+                },
+              ]}
+            >
               <Ionicons name="information-circle" size={22} color={theme.danger} />
-              <Text style={[styles.blacklistWarningText, { color: '#FFA4A4' }]}>
+              <Text style={[styles.blacklistWarningText, { color: isDark ? '#FFA4A4' : '#DC2626' }]}>
                 Díly na tomto seznamu se neosvědčily nebo nepasovaly. AI vyhledávač vás před jejich koupí automaticky varuje.
               </Text>
             </View>

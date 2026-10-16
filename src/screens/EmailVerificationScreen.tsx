@@ -20,7 +20,8 @@ import { useAuth } from '../context/AuthContext';
 
 export const EmailVerificationScreen: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const {
     user,
     checkEmailVerification,
@@ -106,14 +107,14 @@ export const EmailVerificationScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient glowing backdrop */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientRightGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Verification Icon Box with CarLogix Logo */}
         <View style={styles.centerSection}>
           <View style={styles.haloGlowContainer}>
-            <View style={styles.outerGlowCircle} />
+            <View style={[styles.outerGlowCircle, { backgroundColor: isDark ? 'rgba(42, 12, 98, 0.8)' : 'rgba(255, 1, 143, 0.15)' }]} />
             <View style={styles.badgeRing}>
               <View style={styles.badgeInner}>
                 <Image
@@ -130,14 +131,14 @@ export const EmailVerificationScreen: React.FC = () => {
             Pro aktivaci účtu a přístup k vašim vozidlům prosím potvrďte svou e-mailovou adresu kliknutím na odkaz v e-mailu.
           </Text>
 
-          <View style={[styles.emailBadge, { backgroundColor: '#181622', borderColor: '#2C2242' }]}>
+          <View style={[styles.emailBadge, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
             <Ionicons name="mail" size={16} color="#FF018F" />
             <Text style={[styles.emailText, { color: theme.textPrimary }]}>{user?.email || 'Váš e-mail'}</Text>
           </View>
         </View>
 
         {/* Informative Hint about White Screen in Browser */}
-        <View style={[styles.infoBanner, { backgroundColor: '#181622', borderColor: '#2C2242' }]}>
+        <View style={[styles.infoBanner, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
           <Ionicons name="information-circle-outline" size={20} color="#FF018F" style={styles.infoBannerIcon} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.infoBannerTitle, { color: theme.textPrimary }]}>
@@ -151,7 +152,7 @@ export const EmailVerificationScreen: React.FC = () => {
 
         {/* Feedback Alert */}
         {feedbackMessage && (
-          <View style={[styles.feedbackBox, { backgroundColor: '#181622', borderColor: '#2C2242' }]}>
+          <View style={[styles.feedbackBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <Ionicons name="information-circle" size={20} color="#FF018F" />
             <Text style={[styles.feedbackText, { color: theme.textPrimary }]}>{feedbackMessage}</Text>
           </View>
@@ -176,7 +177,7 @@ export const EmailVerificationScreen: React.FC = () => {
           </TouchableOpacity>
 
           {/* Quick Manual Login without full sign-out */}
-          <View style={[styles.manualLoginCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.manualLoginCard, { backgroundColor: theme.card, borderColor: theme.cardBorder, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
             <TouchableOpacity
               style={styles.manualLoginHeader}
               onPress={() => setShowManualLogin(!showManualLogin)}
@@ -203,7 +204,7 @@ export const EmailVerificationScreen: React.FC = () => {
                 <View
                   style={[
                     styles.inputContainer,
-                    { backgroundColor: theme.background, borderColor: theme.border },
+                    { backgroundColor: theme.inputBg, borderColor: theme.border },
                   ]}
                 >
                   <Ionicons name="lock-closed-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
@@ -240,7 +241,7 @@ export const EmailVerificationScreen: React.FC = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.secondaryButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.secondaryButton, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
             onPress={handleResend}
             disabled={isResending}
             activeOpacity={0.8}

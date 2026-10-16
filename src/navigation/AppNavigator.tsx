@@ -45,10 +45,10 @@ const TabNavigator: React.FC = () => {
           height: tabHeight,
           paddingBottom: bottomInset,
           paddingTop: 6,
-          elevation: 10,
-          shadowColor: '#000000',
+          elevation: isDark ? 10 : 4,
+          shadowColor: isDark ? '#000000' : '#64748B',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.35,
+          shadowOpacity: isDark ? 0.35 : 0.08,
           shadowRadius: 12,
         },
         tabBarLabelStyle: {

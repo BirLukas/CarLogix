@@ -22,7 +22,8 @@ import { Vehicle } from '../types';
 
 export const GarageScreen: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const { user } = useAuth();
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -119,8 +120,8 @@ export const GarageScreen: React.FC = () => {
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient background glows */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientRightGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -148,7 +149,17 @@ export const GarageScreen: React.FC = () => {
         ) : currentCar ? (
           <>
             {/* Primary Vehicle Hero Card */}
-            <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.heroCard,
+                {
+                  backgroundColor: theme.card,
+                  borderColor: theme.cardBorder,
+                  shadowColor: theme.shadowColor,
+                  shadowOpacity: theme.shadowOpacity,
+                },
+              ]}
+            >
               <View style={styles.heroTop}>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.vehicleBrand, { color: theme.accent }]}>Aktivní vozidlo</Text>
@@ -159,17 +170,25 @@ export const GarageScreen: React.FC = () => {
                     R.v. {currentCar.year} • Motor {currentCar.engineCode} • {currentCar.fuelType}
                   </Text>
                 </View>
-                <View style={[styles.licensePlate, { borderColor: theme.border, backgroundColor: theme.background }]}>
+                <View
+                  style={[
+                    styles.licensePlate,
+                    {
+                      borderColor: isDark ? '#334155' : '#CBD5E1',
+                      backgroundColor: isDark ? '#121118' : '#FFFFFF',
+                    },
+                  ]}
+                >
                   <View style={styles.euBand}>
                     <Text style={styles.euText}>CZ</Text>
                   </View>
-                  <Text style={[styles.plateText, { color: theme.textPrimary }]}>
+                  <Text style={[styles.plateText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
                     {currentCar.licensePlate}
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.statsRow}>
+              <View style={[styles.statsRow, { borderTopColor: theme.border }]}>
                 <View style={styles.statItem}>
                   <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Tachometr</Text>
                   <Text style={[styles.statValue, { color: theme.textPrimary }]}>
@@ -228,8 +247,8 @@ export const GarageScreen: React.FC = () => {
                     style={[
                       styles.vehicleRow,
                       {
-                        backgroundColor: theme.surface,
-                        borderColor: v.id === currentCar.id ? theme.accent : theme.border,
+                        backgroundColor: theme.card,
+                        borderColor: v.id === currentCar.id ? theme.accent : theme.cardBorder,
                       },
                     ]}
                     onPress={() => setSelectedVehicle(v)}
@@ -278,7 +297,7 @@ export const GarageScreen: React.FC = () => {
       {/* Add Vehicle Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.modalCard, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>Nové vozidlo do garáže</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -290,7 +309,7 @@ export const GarageScreen: React.FC = () => {
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Značka (Brand)</Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary }]}
+                  style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                   value={brand}
                   onChangeText={setBrand}
                   placeholder="např. Škoda, Volkswagen, BMW..."
@@ -301,7 +320,7 @@ export const GarageScreen: React.FC = () => {
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Model</Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary }]}
+                  style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                   value={model}
                   onChangeText={setModel}
                   placeholder="např. Octavia, Golf, 320d..."
@@ -313,7 +332,7 @@ export const GarageScreen: React.FC = () => {
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Rok výroby</Text>
                   <TextInput
-                    style={[styles.modalInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary }]}
+                    style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                     value={year}
                     onChangeText={setYear}
                     placeholder="např. 2019"
@@ -324,7 +343,7 @@ export const GarageScreen: React.FC = () => {
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Kód motoru</Text>
                   <TextInput
-                    style={[styles.modalInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary }]}
+                    style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                     value={engineCode}
                     onChangeText={setEngineCode}
                     placeholder="např. 2.0 TDI, 1.5 TSI..."
@@ -336,7 +355,7 @@ export const GarageScreen: React.FC = () => {
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Státní poznávací značka (SPZ)</Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary }]}
+                  style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                   value={licensePlate}
                   onChangeText={setLicensePlate}
                   placeholder="např. 1AB 2345"
@@ -348,7 +367,7 @@ export const GarageScreen: React.FC = () => {
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Aktuální stav tachometru (km)</Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary }]}
+                  style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                   value={odometer}
                   onChangeText={setOdometer}
                   placeholder="např. 145 000"

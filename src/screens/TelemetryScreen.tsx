@@ -8,7 +8,8 @@ import { OBDLiveMetrics } from '../types';
 
 export const TelemetryScreen: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
 
   const [isHudMode, setIsHudMode] = useState(false);
   const [metrics, setMetrics] = useState<OBDLiveMetrics>(OBDService.getSimulatedMetrics());
@@ -38,8 +39,8 @@ export const TelemetryScreen: React.FC = () => {
       {/* Ambient background glows */}
       {!isHudMode && (
         <>
-          <View style={styles.ambientTopGlow} pointerEvents="none" />
-          <View style={styles.ambientRightGlow} pointerEvents="none" />
+          <View style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary, opacity: 1 }]} pointerEvents="none" />
+          <View style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary, opacity: 1 }]} pointerEvents="none" />
         </>
       )}
 
@@ -63,7 +64,7 @@ export const TelemetryScreen: React.FC = () => {
               style={[
                 styles.hudButton,
                 {
-                  backgroundColor: isHudMode ? theme.neonPink : theme.surface,
+                  backgroundColor: isHudMode ? theme.neonPink : theme.card,
                   borderColor: isHudMode ? theme.neonPink : theme.cardBorder,
                 },
                 isHudMode && styles.hudButtonActiveGlow,
@@ -90,7 +91,7 @@ export const TelemetryScreen: React.FC = () => {
 
         {/* HUD Mode Alert / Note */}
         {isHudMode && (
-          <View style={styles.hudBanner}>
+          <View style={[styles.hudBanner, { backgroundColor: isDark ? '#2A0C6240' : 'rgba(255, 1, 143, 0.12)' }]}>
             <Ionicons name="sparkles" size={14} color="#FF018F" />
             <Text style={styles.hudBannerText}>
               REŽIM ZRCADLENÍ (HUD) – Položte telefon na palubní desku pod čelní sklo
@@ -106,8 +107,10 @@ export const TelemetryScreen: React.FC = () => {
               style={[
                 styles.gaugeCard,
                 {
-                  backgroundColor: isHudMode ? '#0B0A12' : theme.surface,
+                  backgroundColor: isHudMode ? '#0B0A12' : theme.card,
                   borderColor: isHudMode ? theme.neonPink : theme.cardBorder,
+                  shadowColor: isHudMode ? '#FF018F' : theme.shadowColor,
+                  shadowOpacity: isHudMode ? 0.35 : theme.shadowOpacity,
                 },
                 styles.gaugeCardGlow,
               ]}
@@ -130,8 +133,10 @@ export const TelemetryScreen: React.FC = () => {
               style={[
                 styles.gaugeCard,
                 {
-                  backgroundColor: isHudMode ? '#0B0A12' : theme.surface,
+                  backgroundColor: isHudMode ? '#0B0A12' : theme.card,
                   borderColor: isHudMode ? theme.neonPink : theme.cardBorder,
+                  shadowColor: isHudMode ? '#FF018F' : theme.shadowColor,
+                  shadowOpacity: isHudMode ? 0.35 : theme.shadowOpacity,
                 },
                 styles.gaugeCardGlow,
               ]}
@@ -157,8 +162,10 @@ export const TelemetryScreen: React.FC = () => {
               style={[
                 styles.miniGaugeCard,
                 {
-                  backgroundColor: isHudMode ? '#0B0A12' : theme.surface,
+                  backgroundColor: isHudMode ? '#0B0A12' : theme.card,
                   borderColor: theme.cardBorder,
+                  shadowColor: theme.shadowColor,
+                  shadowOpacity: theme.shadowOpacity,
                 },
               ]}
             >
@@ -173,8 +180,10 @@ export const TelemetryScreen: React.FC = () => {
               style={[
                 styles.miniGaugeCard,
                 {
-                  backgroundColor: isHudMode ? '#0B0A12' : theme.surface,
+                  backgroundColor: isHudMode ? '#0B0A12' : theme.card,
                   borderColor: theme.cardBorder,
+                  shadowColor: theme.shadowColor,
+                  shadowOpacity: theme.shadowOpacity,
                 },
               ]}
             >
@@ -189,8 +198,10 @@ export const TelemetryScreen: React.FC = () => {
               style={[
                 styles.miniGaugeCard,
                 {
-                  backgroundColor: isHudMode ? '#0B0A12' : theme.surface,
+                  backgroundColor: isHudMode ? '#0B0A12' : theme.card,
                   borderColor: theme.cardBorder,
+                  shadowColor: theme.shadowColor,
+                  shadowOpacity: theme.shadowOpacity,
                 },
               ]}
             >
@@ -205,7 +216,17 @@ export const TelemetryScreen: React.FC = () => {
 
         {/* Simulation toggle bar */}
         {!isHudMode && (
-          <View style={[styles.simControlCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
+          <View
+            style={[
+              styles.simControlCard,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadowColor,
+                shadowOpacity: theme.shadowOpacity,
+              },
+            ]}
+          >
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={[styles.simTitle, { color: theme.textPrimary }]}>Zdroj telemetrie</Text>
               <Text style={[styles.simDesc, { color: theme.textSecondary }]}>
@@ -213,7 +234,7 @@ export const TelemetryScreen: React.FC = () => {
               </Text>
             </View>
             <TouchableOpacity
-              style={[styles.simToggleBtn, { backgroundColor: isSimulating ? theme.deepViolet : theme.neonPink }]}
+              style={[styles.simToggleBtn, { backgroundColor: isSimulating ? (isDark ? theme.deepViolet : '#2A0C62') : theme.neonPink }]}
               onPress={() => setIsSimulating(!isSimulating)}
               activeOpacity={0.8}
             >

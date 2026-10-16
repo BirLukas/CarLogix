@@ -21,7 +21,8 @@ import { FuelEntry } from '../types';
 
 export const RefuelingScreen: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
 
   const [entries, setEntries] = useState<FuelEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -166,8 +167,8 @@ export const RefuelingScreen: React.FC = () => {
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient background glows */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientRightGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -199,12 +200,22 @@ export const RefuelingScreen: React.FC = () => {
         {/* Metrics Overview Grid */}
         <View style={styles.statsGrid}>
           {/* KPI Card 1: Průměrná spotřeba */}
-          <View style={styles.statBox}>
+          <View
+            style={[
+              styles.statBox,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadowColor,
+                shadowOpacity: theme.shadowOpacity,
+              },
+            ]}
+          >
             <View style={styles.statBoxTop}>
-              <View style={styles.statIconBadge}>
+              <View style={[styles.statIconBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
                 <Ionicons name="speedometer-outline" size={20} color="#FF018F" />
               </View>
-              <View style={styles.kpiChipPink}>
+              <View style={[styles.kpiChipPink, { backgroundColor: isDark ? 'rgba(255, 1, 143, 0.15)' : 'rgba(255, 1, 143, 0.1)' }]}>
                 <Text style={styles.kpiChipTextPink}>PRŮMĚR</Text>
               </View>
             </View>
@@ -220,13 +231,23 @@ export const RefuelingScreen: React.FC = () => {
           </View>
 
           {/* KPI Card 2: Náklad na 1 km */}
-          <View style={styles.statBox}>
+          <View
+            style={[
+              styles.statBox,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadowColor,
+                shadowOpacity: theme.shadowOpacity,
+              },
+            ]}
+          >
             <View style={styles.statBoxTop}>
-              <View style={styles.statIconBadge}>
+              <View style={[styles.statIconBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
                 <Ionicons name="cash-outline" size={20} color="#FF018F" />
               </View>
-              <View style={styles.kpiChipGreen}>
-                <Text style={styles.kpiChipTextGreen}>EFEKTIVITA</Text>
+              <View style={[styles.kpiChipGreen, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.12)' }]}>
+                <Text style={[styles.kpiChipTextGreen, { color: isDark ? '#34D399' : '#059669' }]}>EFEKTIVITA</Text>
               </View>
             </View>
             <View style={styles.kpiValRow}>
@@ -240,9 +261,19 @@ export const RefuelingScreen: React.FC = () => {
         </View>
 
         {/* Route Planner Calculator Widget */}
-        <View style={styles.calculatorCard}>
+        <View
+          style={[
+            styles.calculatorCard,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.cardBorder,
+              shadowColor: theme.shadowColor,
+              shadowOpacity: theme.shadowOpacity,
+            },
+          ]}
+        >
           <View style={styles.calcHeader}>
-            <View style={styles.calcIconBadge}>
+            <View style={[styles.calcIconBadge, { backgroundColor: theme.badgeBg }]}>
               <Ionicons name="calculator-outline" size={17} color="#FF018F" />
             </View>
             <Text style={[styles.calcTitle, { color: theme.textPrimary }]}>Kalkulačka nákladů na trasu</Text>
@@ -253,18 +284,33 @@ export const RefuelingScreen: React.FC = () => {
 
           <View style={styles.inputRow}>
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.border,
+                  color: theme.textPrimary,
+                },
+              ]}
               keyboardType="numeric"
               value={tripDistance}
               onChangeText={setTripDistance}
               placeholder="např. 150"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor={theme.textSecondary}
             />
-            <Text style={styles.unitText}>KM</Text>
+            <Text style={[styles.unitText, { color: theme.textSecondary }]}>KM</Text>
           </View>
 
-          <View style={styles.calcResult}>
-            <Text style={styles.resultLabel}>Odhadovaná cena trasy:</Text>
+          <View
+            style={[
+              styles.calcResult,
+              {
+                backgroundColor: isDark ? 'rgba(42, 12, 98, 0.65)' : 'rgba(255, 1, 143, 0.08)',
+                borderColor: isDark ? 'rgba(255, 1, 143, 0.25)' : 'rgba(255, 1, 143, 0.2)',
+              },
+            ]}
+          >
+            <Text style={[styles.resultLabel, { color: theme.textPrimary }]}>Odhadovaná cena trasy:</Text>
             <Text style={styles.resultValue}>
               {effectiveConsumption > 0 ? `${estimatedTripCost} Kč` : '0 Kč'}
             </Text>
@@ -277,17 +323,27 @@ export const RefuelingScreen: React.FC = () => {
             <Text style={[styles.historyTitle, { color: theme.textPrimary }]}>
               Záznamy tankování
             </Text>
-            <View style={styles.countBadge}>
+            <View style={[styles.countBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
               <Text style={styles.countBadgeText}>{entries.length}</Text>
             </View>
           </View>
-          <Text style={styles.historySub}>Poslední aktivita</Text>
+          <Text style={[styles.historySub, { color: theme.textSecondary }]}>Poslední aktivita</Text>
         </View>
 
         {isLoading ? (
           <ActivityIndicator size="small" color="#FF018F" style={{ marginTop: 20 }} />
         ) : entries.length === 0 ? (
-          <View style={styles.emptyCard}>
+          <View
+            style={[
+              styles.emptyCard,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadowColor,
+                shadowOpacity: theme.shadowOpacity,
+              },
+            ]}
+          >
             <Ionicons name="water-outline" size={40} color="#FF018F" />
             <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>Žádné záznamy o tankování</Text>
             <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
@@ -296,9 +352,20 @@ export const RefuelingScreen: React.FC = () => {
           </View>
         ) : (
           entries.map((item) => (
-            <View key={item.id} style={styles.recordCard}>
+            <View
+              key={item.id}
+              style={[
+                styles.recordCard,
+                {
+                  backgroundColor: theme.card,
+                  borderColor: theme.cardBorder,
+                  shadowColor: theme.shadowColor,
+                  shadowOpacity: theme.shadowOpacity,
+                },
+              ]}
+            >
               <View style={styles.recordLeft}>
-                <View style={styles.fuelIconBg}>
+                <View style={[styles.fuelIconBg, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
                   <Ionicons name="water" size={20} color="#FF018F" />
                 </View>
                 <View style={styles.recordMetaCol}>
@@ -317,7 +384,7 @@ export const RefuelingScreen: React.FC = () => {
                   hitSlop={10}
                   style={styles.deleteButton}
                 >
-                  <Ionicons name="trash-outline" size={17} color="#9CA3AF" />
+                  <Ionicons name="trash-outline" size={17} color={theme.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -414,7 +481,7 @@ export const RefuelingScreen: React.FC = () => {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.modalButtonCancel, { borderColor: theme.border }]}
+                style={[styles.modalButtonCancel, { borderColor: theme.border, backgroundColor: theme.inputBg }]}
                 onPress={() => setModalVisible(false)}
                 disabled={isSaving}
               >

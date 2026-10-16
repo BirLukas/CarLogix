@@ -14,7 +14,17 @@ export const StatusCard: React.FC<StatusCardProps> = ({ title, value, subtitle }
   const theme = isDark ? Colors.dark : Colors.light;
 
   return (
-    <View style={[styles.card, { backgroundColor: isDark ? '#161320' : theme.surface, borderColor: isDark ? '#2C2242' : theme.border }]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.card,
+          borderColor: theme.cardBorder,
+          shadowColor: theme.shadowColor,
+          shadowOpacity: theme.shadowOpacity,
+        },
+      ]}
+    >
       <Text style={[styles.title, { color: theme.textSecondary }]}>{title}</Text>
       <Text style={[styles.value, { color: theme.textPrimary }]}>{value}</Text>
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -29,6 +39,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginVertical: 6,
     width: '100%',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
     fontSize: 11.5,

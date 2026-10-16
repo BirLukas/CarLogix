@@ -3,6 +3,7 @@ export const Colors = {
     background: '#F8FAFC',
     surface: '#FFFFFF',
     card: '#FFFFFF',
+    cardElevated: '#FFFFFF',
     textPrimary: '#0F172A',
     textSecondary: '#64748B',
     accent: '#FF018F',
@@ -13,9 +14,15 @@ export const Colors = {
     tabBarBg: '#FFFFFF',
     neonPink: '#FF018F',
     deepViolet: '#2A0C62',
-    violetGlow: 'rgba(42, 12, 98, 0.25)',
-    pinkGlow: 'rgba(255, 1, 143, 0.35)',
+    violetGlow: 'rgba(124, 58, 237, 0.08)',
+    pinkGlow: 'rgba(255, 1, 143, 0.12)',
+    ambientGlowPrimary: 'rgba(255, 1, 143, 0.07)',
+    ambientGlowSecondary: 'rgba(99, 102, 241, 0.07)',
+    badgeBg: 'rgba(255, 1, 143, 0.08)',
+    badgeBorder: 'rgba(255, 1, 143, 0.25)',
     cardSurface: '#FFFFFF',
+    shadowColor: '#64748B',
+    shadowOpacity: 0.08,
     success: '#10B981',
     warning: '#F59E0B',
     danger: '#EF4444',
@@ -24,6 +31,7 @@ export const Colors = {
     background: '#1A1A1A',
     surface: '#181622',
     card: '#16151F',
+    cardElevated: '#1F1D2B',
     textPrimary: '#FFFFFF',
     textSecondary: '#9CA3AF',
     accent: '#FF018F',
@@ -36,7 +44,13 @@ export const Colors = {
     deepViolet: '#2A0C62',
     violetGlow: 'rgba(42, 12, 98, 0.6)',
     pinkGlow: 'rgba(255, 1, 143, 0.45)',
+    ambientGlowPrimary: 'rgba(42, 12, 98, 0.5)',
+    ambientGlowSecondary: 'rgba(255, 1, 143, 0.14)',
+    badgeBg: 'rgba(42, 12, 98, 0.7)',
+    badgeBorder: 'rgba(255, 1, 143, 0.35)',
     cardSurface: '#16151F',
+    shadowColor: '#2A0C62',
+    shadowOpacity: 0.5,
     success: '#34D399',
     warning: '#FBBF24',
     danger: '#F87171',
@@ -44,4 +58,5 @@ export const Colors = {
 };
 
 export type ColorTheme = typeof Colors.light;
+
 

@@ -309,8 +309,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Ambient glowing backdrop blurs */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientBottomGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientBottomGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       {/* Top Header */}
       <View style={styles.header}>
@@ -327,7 +327,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </View>
 
         <TouchableOpacity
-          style={styles.skipButton}
+          style={[styles.skipButton, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }]}
           onPress={onStartJourney}
           activeOpacity={0.7}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -458,7 +458,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <View
                   style={[
                     styles.dot,
-                    isActive ? styles.dotActive : styles.dotInactive,
+                    isActive
+                      ? styles.dotActive
+                      : [
+                          styles.dotInactive,
+                          {
+                            backgroundColor: isDark
+                              ? 'rgba(255, 255, 255, 0.25)'
+                              : 'rgba(0, 0, 0, 0.18)',
+                          },
+                        ],
                   ]}
                 />
               </TouchableOpacity>

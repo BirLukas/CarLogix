@@ -22,7 +22,8 @@ type SettingsNavProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const SettingsScreen: React.FC = () => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const navigation = useNavigation<SettingsNavProp>();
   const { user, signOut } = useAuth();
 
@@ -58,8 +59,8 @@ export const SettingsScreen: React.FC = () => {
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient glowing backdrop orbs */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientMidGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientMidGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
@@ -71,7 +72,17 @@ export const SettingsScreen: React.FC = () => {
         </View>
 
         {/* User Profile Card */}
-        <View style={styles.profileCard}>
+        <View
+          style={[
+            styles.profileCard,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.cardBorder,
+              shadowColor: theme.shadowColor,
+              shadowOpacity: theme.shadowOpacity,
+            },
+          ]}
+        >
           <View style={styles.profileRow}>
             {/* Avatar with #FF018F / #2A0C62 Neon Halo */}
             <View style={styles.avatarHalo}>
@@ -91,20 +102,24 @@ export const SettingsScreen: React.FC = () => {
                 style={[
                   styles.verifiedBadge,
                   {
-                    backgroundColor: user?.emailVerified ? 'rgba(6, 78, 59, 0.5)' : 'rgba(120, 53, 15, 0.5)',
-                    borderColor: user?.emailVerified ? 'rgba(16, 185, 129, 0.4)' : 'rgba(245, 158, 11, 0.4)',
+                    backgroundColor: user?.emailVerified
+                      ? isDark ? 'rgba(6, 78, 59, 0.5)' : 'rgba(16, 185, 129, 0.12)'
+                      : isDark ? 'rgba(120, 53, 15, 0.5)' : 'rgba(245, 158, 11, 0.12)',
+                    borderColor: user?.emailVerified
+                      ? isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(16, 185, 129, 0.3)'
+                      : isDark ? 'rgba(245, 158, 11, 0.4)' : 'rgba(245, 158, 11, 0.3)',
                   },
                 ]}
               >
                 <Ionicons
                   name={user?.emailVerified ? 'checkmark-circle' : 'time'}
                   size={13}
-                  color={user?.emailVerified ? '#34D399' : '#FBBF24'}
+                  color={user?.emailVerified ? theme.success : theme.warning}
                 />
                 <Text
                   style={[
                     styles.verifiedText,
-                    { color: user?.emailVerified ? '#34D399' : '#FBBF24' },
+                    { color: user?.emailVerified ? theme.success : theme.warning },
                   ]}
                 >
                   {user?.emailVerified ? 'E-mail ověřen' : 'Čeká na ověření'}
@@ -116,10 +131,20 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Work Context Switcher (RBAC) */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>PRACOVNÍ KONTEXT (RBAC)</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>PRACOVNÍ KONTEXT (RBAC)</Text>
         </View>
 
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.cardBorder,
+              shadowColor: theme.shadowColor,
+              shadowOpacity: theme.shadowOpacity,
+            },
+          ]}
+        >
           <View style={styles.settingRow}>
             <View style={styles.settingTextGroup}>
               <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Režim servisní dílny</Text>
@@ -130,25 +155,27 @@ export const SettingsScreen: React.FC = () => {
             <Switch
               value={isMechanicMode}
               onValueChange={handleToggleMechanic}
-              trackColor={{ false: '#2C2242', true: '#FF018F' }}
+              trackColor={{ false: theme.border, true: '#FF018F' }}
               thumbColor="#FFFFFF"
             />
           </View>
 
           {isMechanicMode && (
-            <View style={styles.workshopInputBox}>
+            <View style={[styles.workshopInputBox, { borderTopColor: theme.border }]}>
               <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Název provozovny / servisu:</Text>
               <TextInput
                 style={[
                   styles.input,
                   {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
                     color: theme.textPrimary,
                   },
                 ]}
                 value={workshopName}
                 onChangeText={setWorkshopName}
                 placeholder="Např. Autoservis Novák"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
           )}
@@ -156,10 +183,20 @@ export const SettingsScreen: React.FC = () => {
 
         {/* System & Accessibility */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>VZHLED & SYSTÉM</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>VZHLED & SYSTÉM</Text>
         </View>
 
-        <View style={styles.cardDivided}>
+        <View
+          style={[
+            styles.cardDivided,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.cardBorder,
+              shadowColor: theme.shadowColor,
+              shadowOpacity: theme.shadowOpacity,
+            },
+          ]}
+        >
           {/* Row 1: Barevný motiv */}
           <View style={styles.settingRowDivided}>
             <View style={styles.settingTextGroup}>
@@ -168,7 +205,7 @@ export const SettingsScreen: React.FC = () => {
                 {colorScheme === 'dark' ? 'Tmavý režim (dle systému)' : 'Světlý režim (dle systému)'}
               </Text>
             </View>
-            <View style={styles.themeIconBadge}>
+            <View style={[styles.themeIconBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
               <Ionicons
                 name={colorScheme === 'dark' ? 'moon' : 'sunny'}
                 size={18}
@@ -177,7 +214,7 @@ export const SettingsScreen: React.FC = () => {
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           {/* Row 2: Podmínky používání & Soukromí */}
           <TouchableOpacity
@@ -191,13 +228,19 @@ export const SettingsScreen: React.FC = () => {
                 Zásady ochrany osobních údajů dle směrnice
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={19} color="#9CA3AF" />
+            <Ionicons name="chevron-forward" size={19} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Sign Out Action Button */}
         <TouchableOpacity
-          style={styles.signOutBtn}
+          style={[
+            styles.signOutBtn,
+            {
+              backgroundColor: isDark ? 'rgba(42, 12, 98, 0.3)' : 'rgba(239, 68, 68, 0.08)',
+              borderColor: isDark ? 'rgba(239, 68, 68, 0.45)' : 'rgba(239, 68, 68, 0.25)',
+            },
+          ]}
           onPress={handleSignOut}
           activeOpacity={0.8}
         >
@@ -206,7 +249,17 @@ export const SettingsScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* About App Box */}
-        <View style={styles.aboutBox}>
+        <View
+          style={[
+            styles.aboutBox,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.cardBorder,
+              shadowColor: theme.shadowColor,
+              shadowOpacity: theme.shadowOpacity,
+            },
+          ]}
+        >
           <View style={styles.aboutRow}>
             <Text style={styles.lightningIcon}>⚡</Text>
             <Text style={[styles.appName, { color: theme.textPrimary }]}>CarLogix v0.1.0</Text>
@@ -215,7 +268,7 @@ export const SettingsScreen: React.FC = () => {
             Maturitní projekt • Obor Informační technologie
           </Text>
           <Text style={[styles.aboutTextMuted, { color: theme.textSecondary }]}>
-            Autor: <Text style={{ color: '#D1D5DB', fontWeight: '600' }}>Lukáš Černík</Text>
+            Autor: <Text style={{ color: theme.textPrimary, fontWeight: '700' }}>Lukáš Černík</Text>
           </Text>
         </View>
       </ScrollView>

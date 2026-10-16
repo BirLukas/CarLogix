@@ -24,7 +24,8 @@ interface RegisterScreenProps {
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin, onBackToWelcome }) => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const { signUp, signInWithGoogle, isLoading } = useAuth();
 
   const [firstName, setFirstName] = useState('');
@@ -88,8 +89,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Ambient background glows */}
-      <View pointerEvents="none" style={styles.ambientTopGlow} />
-      <View pointerEvents="none" style={styles.ambientRightGlow} />
+      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
+      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -100,14 +101,19 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
           <View style={styles.header}>
             <TouchableOpacity
               onPress={onBackToWelcome || onNavigateToLogin}
-              style={styles.backButton}
+              style={[
+                styles.backButton,
+                {
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                },
+              ]}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={22} color={theme.textPrimary} />
             </TouchableOpacity>
 
             <View style={styles.haloGlowContainer}>
-              <View style={styles.outerGlowCircle} />
+              <View style={[styles.outerGlowCircle, { backgroundColor: isDark ? 'rgba(42, 12, 98, 0.8)' : 'rgba(255, 1, 143, 0.15)' }]} />
               <View style={styles.badgeRing}>
                 <View style={styles.badgeInner}>
                   <Image
@@ -126,7 +132,17 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
           </View>
 
           {/* Form Card */}
-          <View style={styles.card}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadowColor,
+                shadowOpacity: theme.shadowOpacity,
+              },
+            ]}
+          >
             {errorMessage ? (
               <View style={[styles.errorBox, { backgroundColor: theme.danger + '18', borderColor: theme.danger }]}>
                 <Ionicons name="alert-circle" size={20} color={theme.danger} />
@@ -334,20 +350,26 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
 
             {/* Divider */}
             <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>NEBO</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+              <Text style={[styles.dividerText, { color: theme.textSecondary }]}>NEBO</Text>
+              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
             </View>
 
             {/* Google Sign-In Button */}
             <TouchableOpacity
-              style={styles.googleButton}
+              style={[
+                styles.googleButton,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.border,
+                },
+              ]}
               onPress={handleGoogleSignup}
               disabled={isLoading}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-google" size={18} color="#EA4335" style={styles.googleIcon} />
-              <Text style={styles.googleButtonText}>
+              <Text style={[styles.googleButtonText, { color: theme.textPrimary }]}>
                 Zaregistrovat se přes Google
               </Text>
             </TouchableOpacity>
