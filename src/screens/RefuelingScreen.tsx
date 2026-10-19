@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { formatLogicalDate, formatOdometer } from '../components';
 import { FuelService } from '../services/records';
 import { FuelEntry } from '../types';
 
@@ -412,8 +413,10 @@ export const RefuelingScreen: React.FC = () => {
                     { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
                   ]}
                   value={entryDate}
-                  onChangeText={setEntryDate}
-                  placeholder="např. 12. 10. 2026"
+                  onChangeText={(t) => setEntryDate(formatLogicalDate(t, entryDate))}
+                  keyboardType="number-pad"
+                  maxLength={10}
+                  placeholder="např. 12.10.2026"
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>
@@ -426,9 +429,9 @@ export const RefuelingScreen: React.FC = () => {
                     { backgroundColor: theme.background, borderColor: theme.border, color: theme.textPrimary },
                   ]}
                   value={entryOdometer}
-                  onChangeText={setEntryOdometer}
-                  keyboardType="numeric"
-                  placeholder="např. 184500"
+                  onChangeText={(t) => setEntryOdometer(formatOdometer(t))}
+                  keyboardType="number-pad"
+                  placeholder="např. 184 500"
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>

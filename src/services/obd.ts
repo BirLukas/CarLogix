@@ -17,7 +17,7 @@ export class OBDService {
   public static getStatus(): OBDConnectionStatus {
     return {
       isConnected: this.isConnected,
-      adapterName: this.isSimulated ? 'Mock Simulator (Peugeot 206)' : 'Vgate iCar Pro',
+      adapterName: this.isSimulated ? 'Mock Simulator (OBD-II)' : 'Vgate iCar Pro',
       isSimulated: this.isSimulated,
     };
   }

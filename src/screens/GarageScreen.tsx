@@ -15,7 +15,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
-import { StatusCard } from '../components';
+import {
+  StatusCard,
+  CzechPlateInput,
+  DateFormattedInput,
+  OdometerFormattedInput,
+  isValidDate,
+  parseOdometer,
+  isoToCzechDate,
+} from '../components';
 import { useAuth } from '../context/AuthContext';
 import { VehicleService } from '../services/vehicles';
 import { Vehicle } from '../types';
@@ -39,6 +47,8 @@ export const GarageScreen: React.FC = () => {
   const [engineCode, setEngineCode] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
   const [odometer, setOdometer] = useState('');
+  const [stkDate, setStkDate] = useState('');
+  const [insuranceDate, setInsuranceDate] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const resetForm = () => {
@@ -48,6 +58,8 @@ export const GarageScreen: React.FC = () => {
     setEngineCode('');
     setLicensePlate('');
     setOdometer('');
+    setStkDate('');
+    setInsuranceDate('');
   };
 
   const loadVehicles = useCallback(async () => {
@@ -56,7 +68,9 @@ export const GarageScreen: React.FC = () => {
       const list = await VehicleService.getVehicles(user.id);
       setVehicles(list);
       if (list.length > 0) {
-        setSelectedVehicle(list[0]);
+        setSelectedVehicle((prev) => (prev && list.some((v) => v.id === prev.id) ? prev : list[0]));
+      } else {
+        setSelectedVehicle(null);
       }
     } finally {
       setIsLoading(false);
@@ -73,9 +87,59 @@ export const GarageScreen: React.FC = () => {
     loadVehicles();
   };
 
+  const handleDeleteVehicle = (vehicle: Vehicle) => {
+    Alert.alert(
+      'Smazat vozidlo',
+      `Opravdu si přejete odstranit vozidlo ${vehicle.brand} ${vehicle.model} (${vehicle.licensePlate}) z garáže?`,
+      [
+        { text: 'Zrušit', style: 'cancel' },
+        {
+          text: 'Smazat',
+          style: 'destructive',
+          onPress: async () => {
+            const ok = await VehicleService.deleteVehicle(vehicle.id);
+            if (ok) {
+              setSelectedVehicle(null);
+              await loadVehicles();
+            } else {
+              Alert.alert('Chyba', 'Nepodařilo se smazat vozidlo.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleAddVehicle = async () => {
-    if (!brand.trim() || !model.trim() || !licensePlate.trim()) {
-      Alert.alert('Chyba', 'Vyplňte prosím značku, model a SPZ vozidla.');
+    if (!brand.trim() || !model.trim()) {
+      Alert.alert('Chyba', 'Vyplňte prosím značku a model vozidla.');
+      return;
+    }
+
+    const cleanPlate = licensePlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!cleanPlate) {
+      Alert.alert('Chyba', 'Zadejte prosím státní poznávací značku (SPZ).');
+      return;
+    }
+
+    if (cleanPlate.length < 5) {
+      Alert.alert('Neplatná SPZ', 'Zadejte prosím platnou českou SPZ (standardně 7 kolonek, na přání max. 8 kolonek).');
+      return;
+    }
+
+    if (stkDate.trim() && !isValidDate(stkDate.trim())) {
+      Alert.alert(
+        'Neplatné datum STK',
+        'Zadejte prosím platné kalendářní datum ve formátu DD.MM.RRRR (např. 24.11.2026) nebo pole vymažte.'
+      );
+      return;
+    }
+
+    if (insuranceDate.trim() && !isValidDate(insuranceDate.trim())) {
+      Alert.alert(
+        'Neplatné datum pojištění',
+        'Zadejte prosím platné kalendářní datum ve formátu DD.MM.RRRR (např. 31.12.2026) nebo pole vymažte.'
+      );
       return;
     }
 
@@ -84,7 +148,13 @@ export const GarageScreen: React.FC = () => {
     setIsSaving(true);
     try {
       const parsedYear = parseInt(year, 10) || new Date().getFullYear();
-      const parsedOdo = parseInt(odometer, 10) || 0;
+      const parsedOdo = parseOdometer(odometer);
+
+      // Standard CZ license plate has 7 chars formatted with a space (e.g. 1AB 2345)
+      const formattedPlate =
+        cleanPlate.length === 7
+          ? `${cleanPlate.slice(0, 3)} ${cleanPlate.slice(3)}`
+          : cleanPlate;
 
       const res = await VehicleService.addVehicle({
         ownerId: user.id,
@@ -94,9 +164,9 @@ export const GarageScreen: React.FC = () => {
         engineCode: engineCode.trim() || 'Standard',
         fuelType: 'petrol',
         currentOdometer: parsedOdo,
-        licensePlate: licensePlate.trim().toUpperCase(),
-        stkExpirationDate: '2027-10-15',
-        insuranceExpirationDate: '2027-12-31',
+        licensePlate: formattedPlate,
+        stkExpirationDate: stkDate.trim() || undefined,
+        insuranceExpirationDate: insuranceDate.trim() || undefined,
         oilIntervalKm: 15000,
         lastOilChangeKm: parsedOdo,
       });
@@ -170,21 +240,32 @@ export const GarageScreen: React.FC = () => {
                     R.v. {currentCar.year} • Motor {currentCar.engineCode} • {currentCar.fuelType}
                   </Text>
                 </View>
-                <View
-                  style={[
-                    styles.licensePlate,
-                    {
-                      borderColor: isDark ? '#334155' : '#CBD5E1',
-                      backgroundColor: isDark ? '#121118' : '#FFFFFF',
-                    },
-                  ]}
-                >
-                  <View style={styles.euBand}>
-                    <Text style={styles.euText}>CZ</Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <View
+                    style={[
+                      styles.licensePlate,
+                      {
+                        borderColor: isDark ? '#334155' : '#CBD5E1',
+                        backgroundColor: isDark ? '#121118' : '#FFFFFF',
+                      },
+                    ]}
+                  >
+                    <View style={styles.euBand}>
+                      <Text style={styles.euText}>CZ</Text>
+                    </View>
+                    <Text style={[styles.plateText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                      {currentCar.licensePlate}
+                    </Text>
                   </View>
-                  <Text style={[styles.plateText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    {currentCar.licensePlate}
-                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => handleDeleteVehicle(currentCar)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}
+                  >
+                    <Ionicons name="trash-outline" size={13} color={theme.danger} />
+                    <Text style={{ fontSize: 11, color: theme.danger, fontWeight: '600' }}>Smazat</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -199,7 +280,7 @@ export const GarageScreen: React.FC = () => {
                 <View style={styles.statItem}>
                   <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Platnost STK</Text>
                   <Text style={[styles.statValue, { color: theme.warning }]}>
-                    {currentCar.stkExpirationDate || 'Nenastaveno'}
+                    {isoToCzechDate(currentCar.stkExpirationDate) || 'Nenastaveno'}
                   </Text>
                 </View>
                 <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
@@ -231,7 +312,7 @@ export const GarageScreen: React.FC = () => {
 
             <StatusCard
               title="Pojištění vozidla"
-              value={currentCar.insuranceExpirationDate ? `Platné do ${currentCar.insuranceExpirationDate}` : 'Nenastaveno'}
+              value={currentCar.insuranceExpirationDate ? `Platné do ${isoToCzechDate(currentCar.insuranceExpirationDate)}` : 'Nenastaveno'}
               subtitle="Povinné ručení"
             />
 
@@ -282,12 +363,14 @@ export const GarageScreen: React.FC = () => {
             <Ionicons name="car-outline" size={64} color={theme.textSecondary} />
             <Text style={[styles.emptyText, { color: theme.textSecondary }]}>V garáži zatím nemáte žádné vozidlo.</Text>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: theme.accent }]}
+              style={[styles.emptyActionButton, { backgroundColor: theme.accent }]}
               onPress={() => {
                 resetForm();
                 setModalVisible(true);
               }}
+              activeOpacity={0.85}
             >
+              <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" style={styles.buttonIcon} />
               <Text style={styles.actionButtonText}>Přidat první vozidlo</Text>
             </TouchableOpacity>
           </View>
@@ -305,7 +388,11 @@ export const GarageScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ maxHeight: 380 }}>
+            <ScrollView
+              style={{ maxHeight: 480 }}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 10 }}
+            >
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Značka (Brand)</Text>
                 <TextInput
@@ -334,10 +421,11 @@ export const GarageScreen: React.FC = () => {
                   <TextInput
                     style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
                     value={year}
-                    onChangeText={setYear}
+                    onChangeText={(text) => setYear(text.replace(/\D/g, '').slice(0, 4))}
                     placeholder="např. 2019"
                     placeholderTextColor={theme.textSecondary}
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
+                    maxLength={4}
                   />
                 </View>
                 <View style={[styles.inputGroup, { flex: 1 }]}>
@@ -353,28 +441,49 @@ export const GarageScreen: React.FC = () => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Státní poznávací značka (SPZ)</Text>
-                <TextInput
-                  style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  Státní poznávací značka (SPZ) *
+                </Text>
+                <CzechPlateInput
                   value={licensePlate}
                   onChangeText={setLicensePlate}
-                  placeholder="např. 1AB 2345"
-                  placeholderTextColor={theme.textSecondary}
-                  autoCapitalize="characters"
+                  theme={theme}
+                  isDark={isDark}
                 />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Aktuální stav tachometru (km)</Text>
-                <TextInput
-                  style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
-                  value={odometer}
-                  onChangeText={setOdometer}
-                  placeholder="např. 145 000"
-                  placeholderTextColor={theme.textSecondary}
-                  keyboardType="numeric"
-                />
-              </View>
+              <OdometerFormattedInput
+                label="Aktuální stav tachometru"
+                value={odometer}
+                onChangeText={setOdometer}
+                theme={theme}
+                isDark={isDark}
+                placeholder="např. 145 000"
+              />
+
+              <DateFormattedInput
+                label="Platnost STK (volitelné)"
+                value={stkDate}
+                onChangeDate={setStkDate}
+                theme={theme}
+                isDark={isDark}
+                presets={[
+                  { label: '+2 roky (Standard ČR)', addYears: 2 },
+                  { label: '+4 roky (Nové auto)', addYears: 4 },
+                ]}
+              />
+
+              <DateFormattedInput
+                label="Platnost pojištění (volitelné)"
+                value={insuranceDate}
+                onChangeDate={setInsuranceDate}
+                theme={theme}
+                isDark={isDark}
+                presets={[
+                  { label: '+1 rok (Roční)', addYears: 1 },
+                  { label: 'Dnes', isToday: true },
+                ]}
+              />
             </ScrollView>
 
             <TouchableOpacity
@@ -564,26 +673,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 24,
     marginTop: 16,
+    width: '100%',
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  emptyActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 32,
+    marginTop: 18,
+    shadowColor: '#FF018F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 5,
   },
   buttonIcon: {
     marginRight: 8,
   },
   actionButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 15.5,
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 50,
+    paddingVertical: 60,
+    paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 15,
     marginVertical: 16,
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,

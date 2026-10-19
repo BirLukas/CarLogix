@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { formatLogicalDate, formatOdometer } from '../components';
 import { ServiceBookService } from '../services/records';
 import { ServiceEntry, BlacklistItem } from '../types';
 
@@ -418,8 +419,10 @@ export const ServiceBookScreen: React.FC = () => {
                     { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceDate}
-                  onChangeText={setServiceDate}
-                  placeholder="např. 12. 10. 2026"
+                  onChangeText={(t) => setServiceDate(formatLogicalDate(t, serviceDate))}
+                  keyboardType="number-pad"
+                  maxLength={10}
+                  placeholder="např. 12.10.2026"
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>
@@ -432,9 +435,9 @@ export const ServiceBookScreen: React.FC = () => {
                     { backgroundColor: theme.inputBg, borderColor: theme.cardBorder, color: theme.textPrimary },
                   ]}
                   value={serviceOdometer}
-                  onChangeText={setServiceOdometer}
-                  keyboardType="numeric"
-                  placeholder="např. 184500"
+                  onChangeText={(t) => setServiceOdometer(formatOdometer(t))}
+                  keyboardType="number-pad"
+                  placeholder="např. 184 500"
                   placeholderTextColor={theme.textSecondary}
                 />
               </View>

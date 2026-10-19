@@ -49,11 +49,11 @@ export const SettingsScreen: React.FC = () => {
 
   const initials = user?.displayName
     ? user.displayName
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
     : 'CL';
 
   return (
@@ -261,7 +261,6 @@ export const SettingsScreen: React.FC = () => {
           ]}
         >
           <View style={styles.aboutRow}>
-            <Text style={styles.lightningIcon}>⚡</Text>
             <Text style={[styles.appName, { color: theme.textPrimary }]}>CarLogix v0.1.0</Text>
           </View>
           <Text style={[styles.aboutText, { color: theme.textSecondary }]}>

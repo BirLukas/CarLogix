@@ -39,9 +39,9 @@ export const HomeScreen: React.FC = () => {
           />
 
           <StatusCard
-            title="Referenční Vozidlo"
-            value="Peugeot 206 1.4i (2006)"
-            subtitle="Kód motoru: KFW / TU3JP"
+            title="Garáž Vozidel"
+            value="Univerzální systém"
+            subtitle="Podpora správy libovolných vozidel"
           />
         </View>
 

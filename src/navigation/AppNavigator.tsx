@@ -137,7 +137,7 @@ export const AppNavigator: React.FC = () => {
         <View style={styles.splashHalo}>
           <View style={styles.splashInner}>
             <Image
-              source={require('../CarLogix_Logo.png')}
+              source={require('../../assets/CarLogix_Logo.png')}
               style={styles.splashLogo}
               resizeMode="contain"
             />

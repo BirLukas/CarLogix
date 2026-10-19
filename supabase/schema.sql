@@ -55,16 +55,16 @@ create trigger on_auth_user_created
 create table if not exists public.vehicles (
   id uuid default gen_random_uuid() primary key,
   owner_id uuid references auth.users(id) on delete cascade not null,
-  brand text not null,                       -- např. "Peugeot"
-  model text not null,                       -- např. "206"
-  year integer not null,                     -- např. 2006
-  engine_code text not null,                 -- např. "KFW" (1.4i TU3JP)
+  brand text not null,                       -- např. "Škoda"
+  model text not null,                       -- např. "Octavia"
+  year integer not null,                     -- např. 2019
+  engine_code text not null,                 -- např. "DFHA"
   fuel_type text not null check (
     fuel_type in ('petrol', 'diesel', 'lpg', 'cng', 'hybrid', 'electric')
   ),
   current_odometer integer not null default 0, -- stav v kilometrech
   vin text,                                  -- 17místný VIN kód
-  license_plate text not null,               -- SPZ vozidla (např. "4H1 2060")
+  license_plate text not null,               -- SPZ vozidla (např. "1AB 2345")
   stk_expiration_date date,                  -- Expirace technické kontroly STK
   insurance_expiration_date date,            -- Expirace povinného ručení
   oil_interval_km integer not null default 15000, -- Interval výměny motorového oleje
@@ -107,7 +107,7 @@ create policy "Vlastník může smazat své vozidlo"
   on public.vehicles for delete
   using (auth.uid() = owner_id);
 
--- 5. Ukázková data (Seed) pro referenční vozidlo Peugeot 206
+-- 5. Ukázková data (Seed) pro ukázkové vozidlo
 -- (Poznámka: v produkci vkládejte až po vytvoření uživatele s konkrétním owner_id)
 /*
 insert into public.vehicles (
@@ -125,16 +125,16 @@ insert into public.vehicles (
   last_oil_change_km
 ) values (
   '00000000-0000-0000-0000-000000000000', -- nahraďte auth.uid()
-  'Peugeot',
-  '206',
-  2006,
-  'KFW',
-  'petrol',
-  184520,
-  '4H1 2060',
-  '2026-11-14',
-  '2026-12-31',
+  'Škoda',
+  'Octavia',
+  2019,
+  'DFHA',
+  'diesel',
+  165000,
+  '1AB 2345',
+  null,
+  null,
   15000,
-  179000
+  165000
 );
 */

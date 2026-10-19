@@ -1,25 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { Vehicle } from '../types';
+import { czechDateToIso, isoToCzechDate } from '../components';
 
 const LOCAL_VEHICLES_KEY = '@carlogix_vehicles';
-
-export const DEFAULT_PEUGEOT_206: Vehicle = {
-  id: 'peugeot-206-default',
-  ownerId: 'demo-user-1',
-  brand: 'Peugeot',
-  model: '206',
-  year: 2006,
-  engineCode: 'KFW',
-  fuelType: 'petrol',
-  currentOdometer: 184520,
-  licensePlate: '4H1 2060',
-  vin: 'VF32AKFWF44123456',
-  stkExpirationDate: '2026-11-14',
-  insuranceExpirationDate: '2026-12-31',
-  oilIntervalKm: 15000,
-  lastOilChangeKm: 179000,
-};
 
 export class VehicleService {
   /**
@@ -50,8 +34,8 @@ export class VehicleService {
         currentOdometer: row.current_odometer,
         vin: row.vin,
         licensePlate: row.license_plate,
-        stkExpirationDate: row.stk_expiration_date,
-        insuranceExpirationDate: row.insurance_expiration_date,
+        stkExpirationDate: row.stk_expiration_date ? isoToCzechDate(row.stk_expiration_date) : undefined,
+        insuranceExpirationDate: row.insurance_expiration_date ? isoToCzechDate(row.insurance_expiration_date) : undefined,
         oilIntervalKm: row.oil_interval_km,
         lastOilChangeKm: row.last_oil_change_km,
       }));
@@ -61,15 +45,17 @@ export class VehicleService {
         const stored = await AsyncStorage.getItem(LOCAL_VEHICLES_KEY);
         if (stored) {
           const list: Vehicle[] = JSON.parse(stored);
-          return list.filter((v) => v.ownerId === userId);
+          // Vyčistit případné testovací záznamy z lokálního úložiště
+          const sanitized = list.filter((v) => v && v.brand && v.model && !v.id?.includes('peugeot') && !v.brand?.toLowerCase().includes('peugeot'));
+          if (sanitized.length !== list.length) {
+            await AsyncStorage.setItem(LOCAL_VEHICLES_KEY, JSON.stringify(sanitized));
+          }
+          return sanitized.filter((v) => v.ownerId === userId);
         }
-        // If empty, initialize with default Peugeot 206
-        const initial = [{ ...DEFAULT_PEUGEOT_206, ownerId: userId }];
-        await AsyncStorage.setItem(LOCAL_VEHICLES_KEY, JSON.stringify(initial));
-        return initial;
+        return [];
       } catch (err) {
         console.error('Error loading local vehicles:', err);
-        return [DEFAULT_PEUGEOT_206];
+        return [];
       }
     }
   }
@@ -92,8 +78,8 @@ export class VehicleService {
           current_odometer: vehicle.currentOdometer,
           vin: vehicle.vin,
           license_plate: vehicle.licensePlate,
-          stk_expiration_date: vehicle.stkExpirationDate,
-          insurance_expiration_date: vehicle.insuranceExpirationDate,
+          stk_expiration_date: czechDateToIso(vehicle.stkExpirationDate) || null,
+          insurance_expiration_date: czechDateToIso(vehicle.insuranceExpirationDate) || null,
           oil_interval_km: vehicle.oilIntervalKm,
           last_oil_change_km: vehicle.lastOilChangeKm,
         })
@@ -115,8 +101,8 @@ export class VehicleService {
         currentOdometer: data.current_odometer,
         vin: data.vin,
         licensePlate: data.license_plate,
-        stkExpirationDate: data.stk_expiration_date,
-        insuranceExpirationDate: data.insurance_expiration_date,
+        stkExpirationDate: data.stk_expiration_date ? isoToCzechDate(data.stk_expiration_date) : undefined,
+        insuranceExpirationDate: data.insurance_expiration_date ? isoToCzechDate(data.insurance_expiration_date) : undefined,
         oilIntervalKm: data.oil_interval_km,
         lastOilChangeKm: data.last_oil_change_km,
       };
@@ -143,7 +129,7 @@ export class VehicleService {
    * Smaže vozidlo z garáže.
    */
   public static async deleteVehicle(vehicleId: string): Promise<boolean> {
-    const isSupabase = isSupabaseConfigured() && !vehicleId.startsWith('local-') && !vehicleId.startsWith('peugeot-');
+    const isSupabase = isSupabaseConfigured() && !vehicleId.startsWith('local-');
     if (isSupabase) {
       const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId);
       return !error;

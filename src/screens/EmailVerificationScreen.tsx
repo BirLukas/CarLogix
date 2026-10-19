@@ -118,7 +118,7 @@ export const EmailVerificationScreen: React.FC = () => {
             <View style={styles.badgeRing}>
               <View style={styles.badgeInner}>
                 <Image
-                  source={require('../CarLogix_Logo.png')}
+                  source={require('../../assets/CarLogix_Logo.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />

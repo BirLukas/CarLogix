@@ -25,8 +25,8 @@ export interface Vehicle {
   currentOdometer: number;
   vin?: string;
   licensePlate: string;
-  stkExpirationDate: string;
-  insuranceExpirationDate: string;
+  stkExpirationDate?: string;
+  insuranceExpirationDate?: string;
   oilIntervalKm: number;
   lastOilChangeKm: number;
 }
