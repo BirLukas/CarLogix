@@ -3,6 +3,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -29,7 +30,7 @@ export const CzechPlateInput: React.FC<CzechPlateInputProps> = ({
   theme,
   isDark,
 }) => {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   // Normalize: remove non-alphanumeric, max 8 chars, uppercase
   const rawValue = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);

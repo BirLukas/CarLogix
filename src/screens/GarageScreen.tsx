@@ -28,6 +28,10 @@ import { useAuth } from '../context/AuthContext';
 import { VehicleService } from '../services/vehicles';
 import { Vehicle } from '../types';
 
+const CURRENT_YEAR = new Date().getFullYear();
+const MIN_CAR_YEAR = 1900;
+const MAX_CAR_YEAR = CURRENT_YEAR + 1;
+
 export const GarageScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -61,6 +65,36 @@ export const GarageScreen: React.FC = () => {
     setStkDate('');
     setInsuranceDate('');
   };
+
+  const handleYearChange = (text: string) => {
+    const digits = text.replace(/\D/g, '').slice(0, 4);
+
+    if (!digits) {
+      setYear('');
+      return;
+    }
+
+    // Only allow starting with 1 or 2 (valid automotive eras: 19xx or 20xx)
+    if (!['1', '2'].includes(digits[0])) {
+      return;
+    }
+
+    // If starting with 1, second digit must be 9 (19xx)
+    if (digits[0] === '1' && digits.length >= 2 && digits[1] !== '9') {
+      return;
+    }
+
+    // If starting with 2, second digit must be 0 (20xx)
+    if (digits[0] === '2' && digits.length >= 2 && digits[1] !== '0') {
+      return;
+    }
+
+    setYear(digits);
+  };
+
+  const parsedYearNumber = year.length === 4 ? parseInt(year, 10) : null;
+  const isYearInvalid =
+    parsedYearNumber !== null && (parsedYearNumber < MIN_CAR_YEAR || parsedYearNumber > MAX_CAR_YEAR);
 
   const loadVehicles = useCallback(async () => {
     if (!user) return;
@@ -143,11 +177,30 @@ export const GarageScreen: React.FC = () => {
       return;
     }
 
+    const cleanYear = year.trim();
+    if (!cleanYear) {
+      Alert.alert('Chyba', 'Zadejte prosím rok výroby vozidla (např. 2019).');
+      return;
+    }
+
+    if (cleanYear.length !== 4) {
+      Alert.alert('Neplatný rok výroby', 'Zadejte prosím kompletní 4místný rok výroby (např. 2019).');
+      return;
+    }
+
+    const parsedYear = parseInt(cleanYear, 10);
+    if (isNaN(parsedYear) || parsedYear < MIN_CAR_YEAR || parsedYear > MAX_CAR_YEAR) {
+      Alert.alert(
+        'Neplatný rok výroby',
+        `Rok výroby musí být reálný rok v rozmezí ${MIN_CAR_YEAR} až ${MAX_CAR_YEAR}.`
+      );
+      return;
+    }
+
     if (!user) return;
 
     setIsSaving(true);
     try {
-      const parsedYear = parseInt(year, 10) || new Date().getFullYear();
       const parsedOdo = parseOdometer(odometer);
 
       // Standard CZ license plate has 7 chars formatted with a space (e.g. 1AB 2345)
@@ -417,16 +470,30 @@ export const GarageScreen: React.FC = () => {
 
               <View style={styles.rowInputs}>
                 <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Rok výroby</Text>
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                    Rok výroby *
+                  </Text>
                   <TextInput
-                    style={[styles.modalInput, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.textPrimary }]}
+                    style={[
+                      styles.modalInput,
+                      {
+                        backgroundColor: theme.inputBg,
+                        borderColor: isYearInvalid ? '#EF4444' : theme.border,
+                        color: theme.textPrimary,
+                      },
+                    ]}
                     value={year}
-                    onChangeText={(text) => setYear(text.replace(/\D/g, '').slice(0, 4))}
+                    onChangeText={handleYearChange}
                     placeholder="např. 2019"
                     placeholderTextColor={theme.textSecondary}
                     keyboardType="number-pad"
                     maxLength={4}
                   />
+                  {isYearInvalid ? (
+                    <Text style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>
+                      Platný rok: {MIN_CAR_YEAR}–{MAX_CAR_YEAR}
+                    </Text>
+                  ) : null}
                 </View>
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Kód motoru</Text>

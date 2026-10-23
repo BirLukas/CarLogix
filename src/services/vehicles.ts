@@ -64,6 +64,11 @@ export class VehicleService {
    * Přidá nové vozidlo do garáže.
    */
   public static async addVehicle(vehicle: Omit<Vehicle, 'id'>): Promise<{ vehicle?: Vehicle; error?: string }> {
+    const currentYear = new Date().getFullYear();
+    if (!vehicle.year || isNaN(vehicle.year) || vehicle.year < 1900 || vehicle.year > currentYear + 1) {
+      return { error: `Neplatný rok výroby vozidla (povolené rozmezí: 1900–${currentYear + 1}).` };
+    }
+
     const isSupabaseUser = isSupabaseConfigured() && !vehicle.ownerId.startsWith('demo-') && vehicle.ownerId.includes('-');
     if (isSupabaseUser) {
       const { data, error } = await supabase

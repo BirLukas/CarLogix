@@ -57,7 +57,7 @@ create table if not exists public.vehicles (
   owner_id uuid references auth.users(id) on delete cascade not null,
   brand text not null,                       -- např. "Škoda"
   model text not null,                       -- např. "Octavia"
-  year integer not null,                     -- např. 2019
+  year integer not null check (year >= 1900 and year <= 2100), -- např. 2019
   engine_code text not null,                 -- např. "DFHA"
   fuel_type text not null check (
     fuel_type in ('petrol', 'diesel', 'lpg', 'cng', 'hybrid', 'electric')
