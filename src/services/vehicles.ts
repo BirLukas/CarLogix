@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { Vehicle } from '../types';
-import { czechDateToIso, isoToCzechDate } from '../components';
+import { czechDateToIso, isoToCzechDate } from '../components/DateFormattedInput';
+import { FuelService, ServiceBookService } from './records';
 
 const LOCAL_VEHICLES_KEY = '@carlogix_vehicles';
 
@@ -131,20 +132,64 @@ export class VehicleService {
   }
 
   /**
-   * Smaže vozidlo z garáže.
+   * Aktualizuje stav tachometru vozidla, pokud je nová hodnota vyšší než stávající.
+   */
+  public static async updateOdometerIfHigher(vehicle: Vehicle, newOdometer: number): Promise<boolean> {
+    if (!Number.isFinite(newOdometer) || newOdometer <= vehicle.currentOdometer) {
+      return false;
+    }
+
+    const isSupabase = isSupabaseConfigured() && !vehicle.id.startsWith('local-');
+    if (isSupabase) {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({ current_odometer: newOdometer, updated_at: new Date().toISOString() })
+        .eq('id', vehicle.id);
+      if (error) {
+        console.error('Error updating vehicle odometer in Supabase:', error);
+        return false;
+      }
+      return true;
+    } else {
+      try {
+        const stored = await AsyncStorage.getItem(LOCAL_VEHICLES_KEY);
+        if (!stored) return false;
+        const list: Vehicle[] = JSON.parse(stored);
+        const updated = list.map((v) =>
+          v.id === vehicle.id ? { ...v, currentOdometer: newOdometer } : v
+        );
+        await AsyncStorage.setItem(LOCAL_VEHICLES_KEY, JSON.stringify(updated));
+        return true;
+      } catch (err) {
+        console.error('Error updating local vehicle odometer:', err);
+        return false;
+      }
+    }
+  }
+
+  /**
+   * Smaže vozidlo z garáže včetně jeho lokálních záznamů tankování a servisní knihy.
    */
   public static async deleteVehicle(vehicleId: string): Promise<boolean> {
     const isSupabase = isSupabaseConfigured() && !vehicleId.startsWith('local-');
     if (isSupabase) {
       const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId);
-      return !error;
+      if (error) return false;
+      await Promise.all([
+        FuelService.deleteByVehicleId(vehicleId),
+        ServiceBookService.deleteByVehicleId(vehicleId),
+      ]);
+      return true;
     } else {
       try {
         const stored = await AsyncStorage.getItem(LOCAL_VEHICLES_KEY);
-        if (!stored) return true;
-        const list: Vehicle[] = JSON.parse(stored);
+        const list: Vehicle[] = stored ? JSON.parse(stored) : [];
         const filtered = list.filter((v) => v.id !== vehicleId);
         await AsyncStorage.setItem(LOCAL_VEHICLES_KEY, JSON.stringify(filtered));
+        await Promise.all([
+          FuelService.deleteByVehicleId(vehicleId),
+          ServiceBookService.deleteByVehicleId(vehicleId),
+        ]);
         return true;
       } catch {
         return false;

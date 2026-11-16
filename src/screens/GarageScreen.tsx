@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,22 +25,33 @@ import {
   isoToCzechDate,
 } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useVehicle } from '../context/VehicleContext';
 import { VehicleService } from '../services/vehicles';
-import { Vehicle } from '../types';
+import { FuelType, Vehicle } from '../types';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const MIN_CAR_YEAR = 1900;
 const MAX_CAR_YEAR = CURRENT_YEAR + 1;
+
+const FUEL_OPTIONS: { value: FuelType; label: string }[] = [
+  { value: 'petrol', label: 'Benzín' },
+  { value: 'diesel', label: 'Nafta' },
+  { value: 'hybrid', label: 'Hybrid' },
+  { value: 'electric', label: 'Elektro' },
+  { value: 'lpg', label: 'LPG' },
+  { value: 'cng', label: 'CNG' },
+];
+
+const getFuelLabel = (fuelType: FuelType): string =>
+  FUEL_OPTIONS.find((opt) => opt.value === fuelType)?.label ?? fuelType;
 
 export const GarageScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { user } = useAuth();
+  const { vehicles, selectedVehicle, setSelectedVehicle, isLoading, refreshVehicles } = useVehicle();
 
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   // Add vehicle modal state
@@ -49,6 +60,7 @@ export const GarageScreen: React.FC = () => {
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [engineCode, setEngineCode] = useState('');
+  const [fuelType, setFuelType] = useState<FuelType>('petrol');
   const [licensePlate, setLicensePlate] = useState('');
   const [odometer, setOdometer] = useState('');
   const [stkDate, setStkDate] = useState('');
@@ -60,6 +72,7 @@ export const GarageScreen: React.FC = () => {
     setModel('');
     setYear('');
     setEngineCode('');
+    setFuelType('petrol');
     setLicensePlate('');
     setOdometer('');
     setStkDate('');
@@ -74,18 +87,10 @@ export const GarageScreen: React.FC = () => {
       return;
     }
 
-    // Only allow starting with 1 or 2 (valid automotive eras: 19xx or 20xx)
-    if (!['1', '2'].includes(digits[0])) {
-      return;
-    }
-
-    // If starting with 1, second digit must be 9 (19xx)
-    if (digits[0] === '1' && digits.length >= 2 && digits[1] !== '9') {
-      return;
-    }
-
-    // If starting with 2, second digit must be 0 (20xx)
-    if (digits[0] === '2' && digits.length >= 2 && digits[1] !== '0') {
+    // Reject prefixes that cannot form a valid year within [MIN_CAR_YEAR, MAX_CAR_YEAR]
+    const minPossible = parseInt(digits.padEnd(4, '0'), 10);
+    const maxPossible = parseInt(digits.padEnd(4, '9'), 10);
+    if (maxPossible < MIN_CAR_YEAR || minPossible > MAX_CAR_YEAR) {
       return;
     }
 
@@ -96,29 +101,10 @@ export const GarageScreen: React.FC = () => {
   const isYearInvalid =
     parsedYearNumber !== null && (parsedYearNumber < MIN_CAR_YEAR || parsedYearNumber > MAX_CAR_YEAR);
 
-  const loadVehicles = useCallback(async () => {
-    if (!user) return;
-    try {
-      const list = await VehicleService.getVehicles(user.id);
-      setVehicles(list);
-      if (list.length > 0) {
-        setSelectedVehicle((prev) => (prev && list.some((v) => v.id === prev.id) ? prev : list[0]));
-      } else {
-        setSelectedVehicle(null);
-      }
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    loadVehicles();
-  }, [loadVehicles]);
-
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadVehicles();
+    await refreshVehicles();
+    setRefreshing(false);
   };
 
   const handleDeleteVehicle = (vehicle: Vehicle) => {
@@ -133,8 +119,10 @@ export const GarageScreen: React.FC = () => {
           onPress: async () => {
             const ok = await VehicleService.deleteVehicle(vehicle.id);
             if (ok) {
-              setSelectedVehicle(null);
-              await loadVehicles();
+              if (selectedVehicle?.id === vehicle.id) {
+                setSelectedVehicle(null);
+              }
+              await refreshVehicles();
             } else {
               Alert.alert('Chyba', 'Nepodařilo se smazat vozidlo.');
             }
@@ -215,7 +203,7 @@ export const GarageScreen: React.FC = () => {
         model: model.trim(),
         year: parsedYear,
         engineCode: engineCode.trim() || 'Standard',
-        fuelType: 'petrol',
+        fuelType,
         currentOdometer: parsedOdo,
         licensePlate: formattedPlate,
         stkExpirationDate: stkDate.trim() || undefined,
@@ -229,7 +217,7 @@ export const GarageScreen: React.FC = () => {
       } else if (res.vehicle) {
         resetForm();
         setModalVisible(false);
-        await loadVehicles();
+        await refreshVehicles();
         setSelectedVehicle(res.vehicle);
         Alert.alert('Úspěch', 'Vozidlo bylo úspěšně přidáno do garáže.');
       }
@@ -271,6 +259,36 @@ export const GarageScreen: React.FC = () => {
           <ActivityIndicator size="large" color={theme.accent} style={{ marginVertical: 40 }} />
         ) : currentCar ? (
           <>
+            {/* Vehicle Selector (if more than 1) */}
+            {vehicles.length > 1 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={[styles.sectionTitle, { color: theme.textPrimary, marginBottom: 8 }]}>
+                  Výběr vozidla ({vehicles.length})
+                </Text>
+                {vehicles.map((v) => (
+                  <TouchableOpacity
+                    key={v.id}
+                    style={[
+                      styles.vehicleRow,
+                      {
+                        backgroundColor: theme.card,
+                        borderColor: v.id === currentCar.id ? theme.accent : theme.cardBorder,
+                      },
+                    ]}
+                    onPress={() => setSelectedVehicle(v)}
+                  >
+                    <Ionicons name="car-sport" size={20} color={v.id === currentCar.id ? theme.accent : theme.textSecondary} />
+                    <Text style={[styles.vehicleRowName, { color: theme.textPrimary }]}>
+                      {v.brand} {v.model} ({v.licensePlate})
+                    </Text>
+                    {v.id === currentCar.id && (
+                      <Ionicons name="checkmark-circle" size={18} color={theme.accent} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
             {/* Primary Vehicle Hero Card */}
             <View
               style={[
@@ -290,7 +308,7 @@ export const GarageScreen: React.FC = () => {
                     {currentCar.brand} {currentCar.model}
                   </Text>
                   <Text style={[styles.vehicleMeta, { color: theme.textSecondary }]}>
-                    R.v. {currentCar.year} • Motor {currentCar.engineCode} • {currentCar.fuelType}
+                    R.v. {currentCar.year} • Motor {currentCar.engineCode} • {getFuelLabel(currentCar.fuelType)}
                   </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
@@ -368,36 +386,6 @@ export const GarageScreen: React.FC = () => {
               value={currentCar.insuranceExpirationDate ? `Platné do ${isoToCzechDate(currentCar.insuranceExpirationDate)}` : 'Nenastaveno'}
               subtitle="Povinné ručení"
             />
-
-            {/* Vehicle Selector (if more than 1) */}
-            {vehicles.length > 1 && (
-              <View style={{ marginTop: 12 }}>
-                <Text style={[styles.sectionTitle, { color: theme.textPrimary, marginBottom: 8 }]}>
-                  Další vozy v garáži ({vehicles.length})
-                </Text>
-                {vehicles.map((v) => (
-                  <TouchableOpacity
-                    key={v.id}
-                    style={[
-                      styles.vehicleRow,
-                      {
-                        backgroundColor: theme.card,
-                        borderColor: v.id === currentCar.id ? theme.accent : theme.cardBorder,
-                      },
-                    ]}
-                    onPress={() => setSelectedVehicle(v)}
-                  >
-                    <Ionicons name="car-sport" size={20} color={v.id === currentCar.id ? theme.accent : theme.textSecondary} />
-                    <Text style={[styles.vehicleRowName, { color: theme.textPrimary }]}>
-                      {v.brand} {v.model} ({v.licensePlate})
-                    </Text>
-                    {v.id === currentCar.id && (
-                      <Ionicons name="checkmark-circle" size={18} color={theme.accent} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
 
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: theme.accent }]}
@@ -504,6 +492,38 @@ export const GarageScreen: React.FC = () => {
                     placeholder="např. 2.0 TDI, 1.5 TSI..."
                     placeholderTextColor={theme.textSecondary}
                   />
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Palivo *</Text>
+                <View style={styles.fuelChipsRow}>
+                  {FUEL_OPTIONS.map((opt) => {
+                    const selected = fuelType === opt.value;
+                    return (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[
+                          styles.fuelChip,
+                          {
+                            backgroundColor: selected ? theme.accent : theme.inputBg,
+                            borderColor: selected ? theme.accent : theme.border,
+                          },
+                        ]}
+                        onPress={() => setFuelType(opt.value)}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.fuelChipText,
+                            { color: selected ? '#FFFFFF' : theme.textPrimary },
+                          ]}
+                        >
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
 
@@ -824,6 +844,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 14,
+  },
+  fuelChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  fuelChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  fuelChipText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   saveButton: {
     height: 46,

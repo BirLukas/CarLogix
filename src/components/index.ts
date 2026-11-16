@@ -6,3 +6,4 @@ export * from './StatusCard';
 export * from './CzechPlateInput';
 export * from './DateFormattedInput';
 export * from './OdometerFormattedInput';
+export * from './ActiveVehicleBar';

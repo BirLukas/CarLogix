@@ -73,6 +73,7 @@ export interface ServiceEntry {
 
 export interface BlacklistItem {
   id: string;
+  vehicleId?: string;
   partName: string;
   brand: string;
   partNumber?: string;

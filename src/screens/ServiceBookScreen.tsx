@@ -15,14 +15,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
-import { formatLogicalDate, formatOdometer } from '../components';
-import { ServiceBookService } from '../services/records';
+import {
+  formatLogicalDate,
+  formatOdometer,
+  getTodayCzechDate,
+  isValidDate,
+  ActiveVehicleBar,
+} from '../components';
+import { useVehicle } from '../context/VehicleContext';
+import { ServiceBookService, parseStrictDecimal } from '../services/records';
+import { VehicleService } from '../services/vehicles';
 import { ServiceEntry, BlacklistItem } from '../types';
 
 export const ServiceBookScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { selectedVehicle, refreshVehicles } = useVehicle();
 
   const [activeTab, setActiveTab] = useState<'history' | 'blacklist'>('history');
   const [serviceEntries, setServiceEntries] = useState<ServiceEntry[]>([]);
@@ -48,16 +57,19 @@ export const ServiceBookScreen: React.FC = () => {
   const [blReason, setBlReason] = useState('');
   const [isSavingBlacklist, setIsSavingBlacklist] = useState(false);
 
-  const getTodayFormatted = () => {
-    const today = new Date();
-    return `${today.getDate()}. ${today.getMonth() + 1}. ${today.getFullYear()}`;
-  };
-
   const loadData = useCallback(async () => {
+    if (!selectedVehicle) {
+      setServiceEntries([]);
+      setBlacklist([]);
+      setIsLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
     try {
       const [services, bl] = await Promise.all([
-        ServiceBookService.getEntries(),
-        ServiceBookService.getBlacklist(),
+        ServiceBookService.getEntries(selectedVehicle.id),
+        ServiceBookService.getBlacklist(selectedVehicle.id),
       ]);
       setServiceEntries(services);
       setBlacklist(bl);
@@ -67,7 +79,7 @@ export const ServiceBookScreen: React.FC = () => {
       setIsLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedVehicle?.id]);
 
   useEffect(() => {
     loadData();
@@ -79,9 +91,14 @@ export const ServiceBookScreen: React.FC = () => {
   };
 
   const openAddModal = () => {
+    if (!selectedVehicle) {
+      Alert.alert('Žádné vozidlo', 'Nejprve přidejte vozidlo v záložce Garáž.');
+      return;
+    }
+
     if (activeTab === 'history') {
       setServiceTitle('');
-      setServiceDate(getTodayFormatted());
+      setServiceDate(getTodayCzechDate());
       setServiceOdometer('');
       setServicePerformer('Vlastní úkon');
       setServicePartsText('');
@@ -97,8 +114,16 @@ export const ServiceBookScreen: React.FC = () => {
   };
 
   const handleSaveService = async () => {
+    if (!selectedVehicle) return;
+
     if (!serviceTitle.trim()) {
       Alert.alert('Chyba', 'Zadejte název servisního úkonu.');
+      return;
+    }
+
+    const trimmedDate = serviceDate.trim() || getTodayCzechDate();
+    if (!isValidDate(trimmedDate)) {
+      Alert.alert('Chyba', 'Zadejte platné datum ve formátu DD.MM.RRRR.');
       return;
     }
 
@@ -108,15 +133,34 @@ export const ServiceBookScreen: React.FC = () => {
       return;
     }
 
-    const matPrice = parseFloat(serviceMaterialPrice.replace(/\s/g, '').replace(',', '.')) || 0;
-    const labPrice = parseFloat(serviceLaborPrice.replace(/\s/g, '').replace(',', '.')) || 0;
+    let matPrice = 0;
+    if (serviceMaterialPrice.trim()) {
+      const parsedMat = parseStrictDecimal(serviceMaterialPrice, true);
+      if (parsedMat === null) {
+        Alert.alert('Chyba', 'Zadejte platnou nezápornou cenu materiálu.');
+        return;
+      }
+      matPrice = parsedMat;
+    }
+
+    let labPrice = 0;
+    if (serviceLaborPrice.trim()) {
+      const parsedLab = parseStrictDecimal(serviceLaborPrice, true);
+      if (parsedLab === null) {
+        Alert.alert('Chyba', 'Zadejte platnou nezápornou cenu práce.');
+        return;
+      }
+      labPrice = parsedLab;
+    }
+
     const totalPrice = Math.round(matPrice + labPrice);
 
     setIsSavingService(true);
     try {
       await ServiceBookService.addEntry({
+        vehicleId: selectedVehicle.id,
         title: serviceTitle.trim(),
-        date: serviceDate.trim() || getTodayFormatted(),
+        date: trimmedDate,
         odometer: odo,
         performer: servicePerformer.trim() || 'Vlastní úkon',
         partsSummary: servicePartsText.trim(),
@@ -124,6 +168,10 @@ export const ServiceBookScreen: React.FC = () => {
         laborPriceCzK: Math.round(labPrice),
         totalPriceCzK: totalPrice,
       });
+      const updatedOdo = await VehicleService.updateOdometerIfHigher(selectedVehicle, odo);
+      if (updatedOdo) {
+        await refreshVehicles();
+      }
       setServiceModalVisible(false);
       loadData();
     } catch (error: any) {
@@ -140,7 +188,11 @@ export const ServiceBookScreen: React.FC = () => {
         text: 'Smazat',
         style: 'destructive',
         onPress: async () => {
-          await ServiceBookService.deleteEntry(id);
+          const ok = await ServiceBookService.deleteEntry(id);
+          if (!ok) {
+            Alert.alert('Chyba', 'Nepodařilo se odstranit servisní záznam.');
+            return;
+          }
           loadData();
         },
       },
@@ -148,6 +200,8 @@ export const ServiceBookScreen: React.FC = () => {
   };
 
   const handleSaveBlacklist = async () => {
+    if (!selectedVehicle) return;
+
     if (!blPartName.trim()) {
       Alert.alert('Chyba', 'Zadejte název dílu.');
       return;
@@ -164,6 +218,7 @@ export const ServiceBookScreen: React.FC = () => {
     setIsSavingBlacklist(true);
     try {
       await ServiceBookService.addBlacklistItem({
+        vehicleId: selectedVehicle.id,
         partName: blPartName.trim(),
         brand: blBrand.trim(),
         reason: blReason.trim(),
@@ -184,7 +239,11 @@ export const ServiceBookScreen: React.FC = () => {
         text: 'Odebrat',
         style: 'destructive',
         onPress: async () => {
-          await ServiceBookService.deleteBlacklistItem(id);
+          const ok = await ServiceBookService.deleteBlacklistItem(id);
+          if (!ok) {
+            Alert.alert('Chyba', 'Nepodařilo se odebrat díl z blacklistu.');
+            return;
+          }
           loadData();
         },
       },
@@ -222,6 +281,8 @@ export const ServiceBookScreen: React.FC = () => {
             <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
+
+        <ActiveVehicleBar />
 
         {/* Tab switcher: Historie vs Blacklist */}
         <View style={[styles.tabBar, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>

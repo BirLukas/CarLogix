@@ -107,6 +107,106 @@ create policy "Vlastník může smazat své vozidlo"
   on public.vehicles for delete
   using (auth.uid() = owner_id);
 
+-- 5. Tabulka záznamů tankování (Fuel Entries)
+create table if not exists public.fuel_entries (
+  id uuid default gen_random_uuid() primary key,
+  vehicle_id uuid references public.vehicles(id) on delete cascade not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  date date not null,
+  odometer integer not null check (odometer > 0),
+  liters numeric(8, 2) not null check (liters > 0),
+  price_total_czk numeric(10, 2) not null check (price_total_czk > 0),
+  price_per_liter numeric(8, 2) not null check (price_per_liter > 0),
+  is_full_tank boolean default true not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_fuel_entries_vehicle_id on public.fuel_entries(vehicle_id);
+alter table public.fuel_entries enable row level security;
+
+create policy "Vlastník vozidla může spravovat tankování"
+  on public.fuel_entries for all
+  using (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = auth.uid()
+    )
+  );
+
+-- 6. Tabulka servisní knihy (Service Entries)
+create table if not exists public.service_entries (
+  id uuid default gen_random_uuid() primary key,
+  vehicle_id uuid references public.vehicles(id) on delete cascade not null,
+  author_id uuid references auth.users(id) on delete set null,
+  author_role text default 'owner' check (author_role in ('owner', 'mechanic')),
+  workshop_stamp text,
+  performer text,
+  date date not null,
+  odometer integer not null check (odometer >= 0),
+  title text not null,
+  description text,
+  parts_summary text,
+  material_price_czk integer default 0 not null check (material_price_czk >= 0),
+  labor_price_czk integer default 0 not null check (labor_price_czk >= 0),
+  total_price_czk integer default 0 not null check (total_price_czk >= 0),
+  invoice_image_url text,
+  is_confirmed_by_owner boolean default true not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_service_entries_vehicle_id on public.service_entries(vehicle_id);
+alter table public.service_entries enable row level security;
+
+create policy "Vlastník vozidla může spravovat servisní knihu"
+  on public.service_entries for all
+  using (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = auth.uid()
+    )
+  );
+
+-- 7. Tabulka blacklistu dílů (Blacklisted Parts)
+create table if not exists public.blacklisted_parts (
+  id uuid default gen_random_uuid() primary key,
+  vehicle_id uuid references public.vehicles(id) on delete cascade not null,
+  part_name text not null,
+  brand text not null,
+  part_number text,
+  reason text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_blacklisted_parts_vehicle_id on public.blacklisted_parts(vehicle_id);
+alter table public.blacklisted_parts enable row level security;
+
+create policy "Vlastník vozidla může spravovat blacklist dílů"
+  on public.blacklisted_parts for all
+  using (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = auth.uid()
+    )
+  );
+
 -- 5. Ukázková data (Seed) pro ukázkové vozidlo
 -- (Poznámka: v produkci vkládejte až po vytvoření uživatele s konkrétním owner_id)
 /*

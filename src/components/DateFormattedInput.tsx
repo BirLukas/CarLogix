@@ -150,6 +150,16 @@ export function isValidDate(dateStr: string): boolean {
 }
 
 /**
+ * Returns today's date in strict DD.MM.YYYY format.
+ */
+export function getTodayCzechDate(): string {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  return `${day}.${month}.${today.getFullYear()}`;
+}
+
+/**
  * Converts Czech date (DD.MM.YYYY) to ISO (YYYY-MM-DD) for database storage
  */
 export function czechDateToIso(czechDate?: string | null): string | undefined {
@@ -158,7 +168,7 @@ export function czechDateToIso(czechDate?: string | null): string | undefined {
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
     return trimmed;
   }
-  const match = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  const match = trimmed.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})$/);
   if (match) {
     const day = match[1].padStart(2, '0');
     const month = match[2].padStart(2, '0');

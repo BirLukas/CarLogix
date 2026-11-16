@@ -16,14 +16,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
-import { formatLogicalDate, formatOdometer } from '../components';
-import { FuelService } from '../services/records';
+import {
+  formatLogicalDate,
+  formatOdometer,
+  getTodayCzechDate,
+  isValidDate,
+  ActiveVehicleBar,
+} from '../components';
+import { useVehicle } from '../context/VehicleContext';
+import { FuelService, calculateFuelMetrics, parseStrictDecimal } from '../services/records';
+import { VehicleService } from '../services/vehicles';
 import { FuelEntry } from '../types';
 
 export const RefuelingScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { selectedVehicle, refreshVehicles } = useVehicle();
 
   const [entries, setEntries] = useState<FuelEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,8 +51,15 @@ export const RefuelingScreen: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const loadEntries = useCallback(async () => {
+    if (!selectedVehicle) {
+      setEntries([]);
+      setIsLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
     try {
-      const data = await FuelService.getEntries();
+      const data = await FuelService.getEntries(selectedVehicle.id);
       setEntries(data);
     } catch (err) {
       console.error('Chyba při načítání záznamů o tankování:', err);
@@ -51,7 +67,7 @@ export const RefuelingScreen: React.FC = () => {
       setIsLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedVehicle?.id]);
 
   useEffect(() => {
     loadEntries();
@@ -62,13 +78,12 @@ export const RefuelingScreen: React.FC = () => {
     loadEntries();
   };
 
-  const getTodayFormatted = () => {
-    const today = new Date();
-    return `${today.getDate()}. ${today.getMonth() + 1}. ${today.getFullYear()}`;
-  };
-
   const openAddModal = () => {
-    setEntryDate(getTodayFormatted());
+    if (!selectedVehicle) {
+      Alert.alert('Žádné vozidlo', 'Nejprve přidejte vozidlo v záložce Garáž.');
+      return;
+    }
+    setEntryDate(getTodayCzechDate());
     setEntryOdometer('');
     setEntryLiters('');
     setEntryTotalPrice('');
@@ -77,35 +92,49 @@ export const RefuelingScreen: React.FC = () => {
   };
 
   const handleSaveEntry = async () => {
+    if (!selectedVehicle) return;
+
+    const trimmedDate = entryDate.trim() || getTodayCzechDate();
+    if (!isValidDate(trimmedDate)) {
+      Alert.alert('Chyba', 'Zadejte platné datum ve formátu DD.MM.RRRR.');
+      return;
+    }
+
     const odo = parseInt(entryOdometer.replace(/\s/g, ''), 10);
-    const liters = parseFloat(entryLiters.replace(',', '.'));
-    const price = parseFloat(entryTotalPrice.replace(/\s/g, '').replace(',', '.'));
+    const liters = parseStrictDecimal(entryLiters);
+    const price = parseStrictDecimal(entryTotalPrice);
 
     if (isNaN(odo) || odo <= 0) {
       Alert.alert('Chyba', 'Zadejte platný stav tachometru.');
       return;
     }
-    if (isNaN(liters) || liters <= 0) {
+    if (liters === null) {
       Alert.alert('Chyba', 'Zadejte platné množství natankovaných litrů.');
       return;
     }
-    if (isNaN(price) || price <= 0) {
+    if (price === null) {
       Alert.alert('Chyba', 'Zadejte platnou celkovou cenu.');
       return;
     }
 
-    const pricePerLiter = parseFloat((price / liters).toFixed(2));
+    const totalCzK = parseFloat(price.toFixed(2));
+    const pricePerLiter = parseFloat((totalCzK / liters).toFixed(2));
 
     setIsSaving(true);
     try {
       await FuelService.addEntry({
-        date: entryDate.trim() || getTodayFormatted(),
+        vehicleId: selectedVehicle.id,
+        date: trimmedDate,
         odometer: odo,
         liters,
-        priceTotalCzK: Math.round(price),
+        priceTotalCzK: totalCzK,
         pricePerLiter,
         isFullTank,
       });
+      const updatedOdo = await VehicleService.updateOdometerIfHigher(selectedVehicle, odo);
+      if (updatedOdo) {
+        await refreshVehicles();
+      }
       setModalVisible(false);
       loadEntries();
     } catch (error: any) {
@@ -122,42 +151,28 @@ export const RefuelingScreen: React.FC = () => {
         text: 'Smazat',
         style: 'destructive',
         onPress: async () => {
-          await FuelService.deleteEntry(id);
+          const ok = await FuelService.deleteEntry(id);
+          if (!ok) {
+            Alert.alert('Chyba', 'Nepodařilo se odstranit záznam o tankování.');
+            return;
+          }
           loadEntries();
         },
       },
     ]);
   };
 
-  // Dynamic metrics calculation
-  let calculatedAvgConsumption: number | null = null;
-  let calculatedCostPerKm: string = '—';
-  let avgPricePerLiter = 0;
-
-  if (entries.length > 0) {
-    const totalSpent = entries.reduce((acc, curr) => acc + curr.priceTotalCzK, 0);
-    const totalLiters = entries.reduce((acc, curr) => acc + curr.liters, 0);
-    avgPricePerLiter = totalLiters > 0 ? totalSpent / totalLiters : 0;
-
-    if (entries.length >= 2) {
-      // Sort ascending by odometer
-      const sorted = [...entries].sort((a, b) => a.odometer - b.odometer);
-      const minOdo = sorted[0].odometer;
-      const maxOdo = sorted[sorted.length - 1].odometer;
-      const distance = maxOdo - minOdo;
-
-      if (distance > 0) {
-        // Refuels between min and max odometer
-        const subsequentLiters = sorted.slice(1).reduce((acc, curr) => acc + curr.liters, 0);
-        calculatedAvgConsumption = (subsequentLiters / distance) * 100;
-        const subsequentCost = sorted.slice(1).reduce((acc, curr) => acc + curr.priceTotalCzK, 0);
-        calculatedCostPerKm = (subsequentCost / distance).toFixed(2);
-      }
-    }
-  }
+  // Dynamic metrics calculation (metoda plná–plná)
+  const {
+    avgConsumption: calculatedAvgConsumption,
+    costPerKm,
+    avgPricePerLiter,
+    perEntryConsumption,
+  } = calculateFuelMetrics(entries);
+  const calculatedCostPerKm = costPerKm !== null ? costPerKm.toFixed(2) : '—';
 
   // Route cost calculation
-  const parsedDistance = parseFloat(tripDistance.replace(',', '.')) || 0;
+  const parsedDistance = parseStrictDecimal(tripDistance, true) ?? 0;
   const effectiveConsumption = calculatedAvgConsumption || 0;
   const effectiveFuelPrice = avgPricePerLiter || 38.5;
   const estimatedTripCost =
@@ -198,6 +213,8 @@ export const RefuelingScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
+        <ActiveVehicleBar />
+
         {/* Metrics Overview Grid */}
         <View style={styles.statsGrid}>
           {/* KPI Card 1: Průměrná spotřeba */}
@@ -222,12 +239,14 @@ export const RefuelingScreen: React.FC = () => {
             </View>
             <View style={styles.kpiValRow}>
               <Text style={[styles.statVal, { color: theme.textPrimary }]}>
-                {calculatedAvgConsumption !== null ? calculatedAvgConsumption.toFixed(1) : '57.1'}
+                {calculatedAvgConsumption !== null ? calculatedAvgConsumption.toFixed(1) : '—'}
               </Text>
-              <Text style={styles.kpiValUnitPink}>l</Text>
+              {calculatedAvgConsumption !== null && (
+                <Text style={styles.kpiValUnitPink}>l/100km</Text>
+              )}
             </View>
             <Text style={[styles.statDesc, { color: theme.textSecondary }]}>
-              {entries.length >= 2 ? 'Průměrná spotřeba' : 'Průměrná spotřeba'}
+              {calculatedAvgConsumption !== null ? 'Průměrná spotřeba' : 'Min. 2 plné nádrže'}
             </Text>
           </View>
 
@@ -253,9 +272,11 @@ export const RefuelingScreen: React.FC = () => {
             </View>
             <View style={styles.kpiValRow}>
               <Text style={[styles.statVal, { color: theme.textPrimary }]}>
-                {calculatedCostPerKm !== '—' ? calculatedCostPerKm : '22.86'}
+                {calculatedCostPerKm}
               </Text>
-              <Text style={styles.kpiValUnitPink}>Kč</Text>
+              {calculatedCostPerKm !== '—' && (
+                <Text style={styles.kpiValUnitPink}>Kč</Text>
+              )}
             </View>
             <Text style={[styles.statDesc, { color: theme.textSecondary }]}>Náklad na 1 km</Text>
           </View>
@@ -372,7 +393,7 @@ export const RefuelingScreen: React.FC = () => {
                 <View style={styles.recordMetaCol}>
                   <Text style={[styles.recordDate, { color: theme.textPrimary }]}>{item.date}</Text>
                   <Text style={[styles.recordMeta, { color: theme.textSecondary }]} numberOfLines={1}>
-                    {item.odometer.toLocaleString('cs-CZ')} km • {item.liters.toFixed(1)} l {item.isFullTank ? '(Plná nádrž)' : ''} • {item.pricePerLiter.toFixed(2)} Kč/l
+                    {item.odometer.toLocaleString('cs-CZ')} km • {item.liters.toFixed(2).replace(/\.?0+$/, '')} l{item.isFullTank ? ' (Plná)' : ''} • {item.pricePerLiter.toFixed(2)} Kč/l{perEntryConsumption[item.id] !== undefined ? ` • ${perEntryConsumption[item.id].toFixed(1)} l/100km` : ''}
                   </Text>
                 </View>
               </View>
