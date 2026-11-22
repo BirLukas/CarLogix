@@ -78,7 +78,47 @@ export interface BlacklistItem {
   brand: string;
   partNumber?: string;
   reason: string;
+  imageUrl?: string;
   createdAt?: string;
+}
+
+export type VehicleDocumentType =
+  | 'technical_certificate'
+  | 'green_card'
+  | 'purchase_contract'
+  | 'stk_protocol'
+  | 'other';
+
+export interface VehicleDocument {
+  id: string;
+  vehicleId: string;
+  userId?: string;
+  docType: VehicleDocumentType;
+  title: string;
+  imageUrl: string;
+  notes?: string;
+  expirationDate?: string;
+  createdAt: string;
+}
+
+export interface InvoiceOcrResult {
+  title?: string;
+  date?: string;
+  odometer?: number;
+  performer?: string;
+  partsSummary?: string;
+  materialPriceCzK?: number;
+  laborPriceCzK?: number;
+  totalPriceCzK?: number;
+}
+
+export interface StkOcrResult {
+  stkExpirationDate?: string;
+  vin?: string;
+}
+
+export interface InsuranceOcrResult {
+  insuranceExpirationDate?: string;
 }
 
 export interface OBDLiveMetrics {

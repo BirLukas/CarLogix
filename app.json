@@ -40,7 +40,19 @@
         }
       ],
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Aplikace CarLogix potřebuje přístup k fotoaparátu pro skenování faktur, dokladů a dílů."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Aplikace CarLogix potřebuje přístup k fotogalerii pro nahrání faktur a dokumentů vozidla."
+        }
+      ]
     ]
   }
 }

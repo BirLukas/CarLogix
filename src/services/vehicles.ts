@@ -168,6 +168,64 @@ export class VehicleService {
   }
 
   /**
+   * Aktualizuje platnost STK, povinného ručení a volitelně VIN vozidla.
+   */
+  public static async updateComplianceDates(
+    vehicle: Vehicle,
+    updates: {
+      stkExpirationDate?: string;
+      insuranceExpirationDate?: string;
+      vin?: string;
+    },
+  ): Promise<{ success: boolean; error?: string }> {
+    const nextStk =
+      updates.stkExpirationDate !== undefined ? updates.stkExpirationDate : vehicle.stkExpirationDate;
+    const nextInsurance =
+      updates.insuranceExpirationDate !== undefined
+        ? updates.insuranceExpirationDate
+        : vehicle.insuranceExpirationDate;
+    const nextVin = updates.vin !== undefined ? updates.vin : vehicle.vin;
+
+    const isSupabase = isSupabaseConfigured() && !vehicle.id.startsWith('local-');
+    if (isSupabase) {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({
+          stk_expiration_date: nextStk ? czechDateToIso(nextStk) || null : null,
+          insurance_expiration_date: nextInsurance ? czechDateToIso(nextInsurance) || null : null,
+          vin: nextVin || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', vehicle.id);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    }
+
+    try {
+      const stored = await AsyncStorage.getItem(LOCAL_VEHICLES_KEY);
+      if (!stored) return { success: false, error: 'Lokální úložiště vozidel je prázdné.' };
+      const list: Vehicle[] = JSON.parse(stored);
+      const updated = list.map((v) =>
+        v.id === vehicle.id
+          ? {
+              ...v,
+              stkExpirationDate: nextStk,
+              insuranceExpirationDate: nextInsurance,
+              vin: nextVin,
+            }
+          : v,
+      );
+      await AsyncStorage.setItem(LOCAL_VEHICLES_KEY, JSON.stringify(updated));
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Nepodařilo se uložit data vozidla.' };
+    }
+  }
+
+  /**
    * Smaže vozidlo z garáže včetně jeho lokálních záznamů tankování a servisní knihy.
    */
   public static async deleteVehicle(vehicleId: string): Promise<boolean> {

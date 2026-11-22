@@ -209,7 +209,7 @@ export const RefuelingScreen: React.FC = () => {
             activeOpacity={0.85}
             onPress={openAddModal}
           >
-            <Ionicons name="add" size={26} color="#FFFFFF" />
+            <Ionicons name="add" size={25} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -593,16 +593,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 46,
+    height: 46,
+    borderRadius: 15,
     backgroundColor: '#FF018F',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#FF018F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 14,
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
     elevation: 6,
   },
   statsGrid: {

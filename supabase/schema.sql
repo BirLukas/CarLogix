@@ -186,6 +186,7 @@ create table if not exists public.blacklisted_parts (
   brand text not null,
   part_number text,
   reason text not null,
+  image_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -194,17 +195,101 @@ alter table public.blacklisted_parts enable row level security;
 
 create policy "Vlastník vozidla může spravovat blacklist dílů"
   on public.blacklisted_parts for all
+  to authenticated
   using (
     exists (
       select 1 from public.vehicles v
-      where v.id = vehicle_id and v.owner_id = auth.uid()
+      where v.id = vehicle_id and v.owner_id = (select auth.uid())
     )
   )
   with check (
     exists (
       select 1 from public.vehicles v
-      where v.id = vehicle_id and v.owner_id = auth.uid()
+      where v.id = vehicle_id and v.owner_id = (select auth.uid())
     )
+  );
+
+-- 8. Tabulka digitálního archivu dokumentů (Vehicle Documents - FR3)
+create table if not exists public.vehicle_documents (
+  id uuid default gen_random_uuid() primary key,
+  vehicle_id uuid references public.vehicles(id) on delete cascade not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  doc_type text not null check (
+    doc_type in ('technical_certificate', 'green_card', 'purchase_contract', 'stk_protocol', 'other')
+  ),
+  title text not null,
+  image_url text not null,
+  notes text,
+  expiration_date date,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_vehicle_documents_vehicle_id on public.vehicle_documents(vehicle_id);
+create index if not exists idx_vehicle_documents_user_id on public.vehicle_documents(user_id);
+alter table public.vehicle_documents enable row level security;
+
+create policy "Vlastník vozidla může spravovat dokumenty"
+  on public.vehicle_documents for all
+  to authenticated
+  using (
+    exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = (select auth.uid())
+    )
+  )
+  with check (
+    user_id = (select auth.uid())
+    and exists (
+      select 1 from public.vehicles v
+      where v.id = vehicle_id and v.owner_id = (select auth.uid())
+    )
+  );
+
+-- 9. Privátní Storage bucket pro faktury, fotodokumentaci a archiv dokumentů
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'carlogix-documents',
+  'carlogix-documents',
+  false,
+  10485760,
+  array['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+)
+on conflict (id) do nothing;
+
+create policy "Uživatel může číst své dokumenty"
+  on storage.objects for select
+  to authenticated
+  using (
+    bucket_id = 'carlogix-documents'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
+  );
+
+create policy "Uživatel může nahrávat své dokumenty"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'carlogix-documents'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
+  );
+
+create policy "Uživatel může upravovat své dokumenty"
+  on storage.objects for update
+  to authenticated
+  using (
+    bucket_id = 'carlogix-documents'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
+  )
+  with check (
+    bucket_id = 'carlogix-documents'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
+  );
+
+create policy "Uživatel může mazat své dokumenty"
+  on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id = 'carlogix-documents'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
   );
 
 -- 5. Ukázková data (Seed) pro ukázkové vozidlo
