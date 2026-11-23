@@ -3,10 +3,32 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AuthSession from 'expo-auth-session';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { User } from '../types';
 
+let detectedExpoGoBaseUrl: string | null = null;
+
 export const getAuthRedirectUrl = (): string => {
+  const isExpoGo =
+    Boolean(detectedExpoGoBaseUrl) ||
+    Boolean(Constants.expoGoConfig) ||
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient ||
+    Constants.appOwnership === 'expo';
+
+  if (isExpoGo) {
+    if (detectedExpoGoBaseUrl) {
+      return `${detectedExpoGoBaseUrl}/--/auth/callback`;
+    }
+    const hostUri = Constants.expoGoConfig?.debuggerHost || Constants.expoConfig?.hostUri;
+    if (hostUri) {
+      return `exp://${hostUri}/--/auth/callback`;
+    }
+    return AuthSession.makeRedirectUri({
+      path: 'auth/callback',
+    });
+  }
+
   return AuthSession.makeRedirectUri({
     scheme: 'carlogix',
     path: 'auth/callback',
@@ -235,6 +257,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
       if (url) {
+        const expMatch = url.match(/^(exps?:\/\/[^/]+)/);
+        if (expMatch) {
+          detectedExpoGoBaseUrl = expMatch[1];
+        }
         processAuthUrl(url);
       }
     });
@@ -414,7 +440,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         console.log('[Auth] Launching WebBrowser auth session with URL:', data.url);
         const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
-        console.log('[Auth] WebBrowser result type:', result.type);
+        console.log('[Auth] WebBrowser result:', JSON.stringify(result));
 
         if (result.type === 'success' && result.url) {
           const res = await processAuthUrl(result.url);
