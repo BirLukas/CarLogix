@@ -314,8 +314,7 @@ export const GarageScreen: React.FC = () => {
         }
         Alert.alert(
           'Protokol STK vytěžen',
-          `Platnost STK: ${extracted.stkExpirationDate || 'nerozpoznáno (můžete upravit níže)'}${
-            extracted.vin ? `\nVIN: ${extracted.vin}` : ''
+          `Platnost STK: ${extracted.stkExpirationDate || 'nerozpoznáno (můžete upravit níže)'}${extracted.vin ? `\nVIN: ${extracted.vin}` : ''
           }`,
         );
       } else {
@@ -330,8 +329,7 @@ export const GarageScreen: React.FC = () => {
         }
         Alert.alert(
           'Zelená karta vytěžena',
-          `Platnost pojištění do: ${
-            extracted.insuranceExpirationDate || 'nerozpoznáno (můžete upravit níže)'
+          `Platnost pojištění do: ${extracted.insuranceExpirationDate || 'nerozpoznáno (můžete upravit níže)'
           }`,
         );
       }
@@ -631,6 +629,174 @@ export const GarageScreen: React.FC = () => {
       </View>
     </View>
   );
+
+  const renderComplianceSection = ({
+    mode,
+    selectedMode,
+    onSelectMode,
+    allowLater,
+    currentStkScan,
+    currentStkDate,
+    onChangeStkDate,
+    currentInsScan,
+    currentInsDate,
+    onChangeInsDate,
+  }: {
+    mode: 'create' | 'later';
+    selectedMode: ComplianceMode;
+    onSelectMode: (next: ComplianceMode) => void;
+    allowLater: boolean;
+    currentStkScan: ScannedImageResult | null;
+    currentStkDate: string;
+    onChangeStkDate: (d: string) => void;
+    currentInsScan: ScannedImageResult | null;
+    currentInsDate: string;
+    onChangeInsDate: (d: string) => void;
+  }) => {
+    const modeOptions: {
+      key: ComplianceMode;
+      icon: keyof typeof Ionicons.glyphMap;
+      title: string;
+      subtitle: string;
+    }[] = [
+      {
+        key: 'scan',
+        icon: 'scan-outline',
+        title: 'Vyfotit / nahrát dokumenty (AI)',
+        subtitle: 'Samostatný snímek pro STK a Zelenou kartu',
+      },
+      {
+        key: 'manual',
+        icon: 'create-outline',
+        title: 'Zadat ručně',
+        subtitle: 'Vyplnit data expirace ručně nebo předvolbou',
+      },
+      ...(allowLater
+        ? [
+            {
+              key: 'later' as const,
+              icon: 'time-outline' as const,
+              title: 'Odložit a zadat později',
+              subtitle: 'Doplníte kdykoliv později v přehledu vozidla',
+            },
+          ]
+        : []),
+    ];
+
+    const secondSectionTitle =
+      selectedMode === 'scan'
+        ? '2. PŘÍMÉ ZADÁNÍ — SKEN DOKLADŮ'
+        : selectedMode === 'manual'
+          ? '2. PŘÍMÉ ZADÁNÍ PLATNOSTI'
+          : '2. ODLOŽENÍ ZADÁNÍ';
+
+    return (
+      <View>
+        {/* Sekce 1: Výběr způsobu zadání */}
+        <Text style={[styles.complianceSectionLabel, { color: theme.textSecondary }]}>
+          1. ZPŮSOB ZADÁNÍ
+        </Text>
+        <View style={styles.modeSelectorCol}>
+          {modeOptions.map((opt) => {
+            const isSelected = selectedMode === opt.key;
+            return (
+              <TouchableOpacity
+                key={opt.key}
+                style={[
+                  styles.modeCard,
+                  {
+                    backgroundColor: isSelected ? theme.badgeBg : theme.inputBg,
+                    borderColor: isSelected ? theme.accent : theme.border,
+                  },
+                ]}
+                onPress={() => onSelectMode(opt.key)}
+              >
+                <Ionicons
+                  name={opt.icon}
+                  size={20}
+                  color={isSelected ? theme.accent : theme.textSecondary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.modeTitle, { color: theme.textPrimary }]}>
+                    {opt.title}
+                  </Text>
+                  <Text style={[styles.modeSub, { color: theme.textSecondary }]}>
+                    {opt.subtitle}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                  size={18}
+                  color={isSelected ? theme.accent : theme.textSecondary}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Oddělovač */}
+        <View style={[styles.complianceDivider, { backgroundColor: theme.border }]} />
+
+        {/* Sekce 2: Přímé zadávání */}
+        <Text style={[styles.complianceSectionLabel, { color: theme.accent }]}>
+          {secondSectionTitle}
+        </Text>
+        <View
+          style={[
+            styles.complianceInputSection,
+            { backgroundColor: theme.background, borderColor: theme.border },
+          ]}
+        >
+          {selectedMode === 'scan' &&
+            renderScanSection(
+              mode,
+              currentStkScan,
+              currentStkDate,
+              onChangeStkDate,
+              currentInsScan,
+              currentInsDate,
+              onChangeInsDate,
+            )}
+
+          {selectedMode === 'manual' && (
+            <View style={{ gap: 6 }}>
+              <DateFormattedInput
+                label="Platnost STK"
+                value={currentStkDate}
+                onChangeDate={onChangeStkDate}
+                theme={theme}
+                isDark={isDark}
+                presets={[
+                  { label: '+2 roky (Standard ČR)', addYears: 2 },
+                  { label: '+4 roky (Nové auto)', addYears: 4 },
+                ]}
+              />
+              <DateFormattedInput
+                label="Platnost povinného ručení"
+                value={currentInsDate}
+                onChangeDate={onChangeInsDate}
+                theme={theme}
+                isDark={isDark}
+                presets={[
+                  { label: '+1 rok (Roční)', addYears: 1 },
+                  { label: 'Dnes', isToday: true },
+                ]}
+              />
+            </View>
+          )}
+
+          {selectedMode === 'later' && (
+            <View style={[styles.laterNotice, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+              <Ionicons name="information-circle-outline" size={20} color={theme.accent} />
+              <Text style={[styles.laterNoticeText, { color: theme.textSecondary }]}>
+                Vozidlo se uloží bez dat expirace. Kdykoliv v detailu auta pak můžete vybrat naskenování dokladů nebo ruční zadání.
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -1045,118 +1211,18 @@ export const GarageScreen: React.FC = () => {
                     Vyberte způsob zadání platnosti STK a povinného ručení:
                   </Text>
 
-                  {/* 3 Mode Options */}
-                  <View style={styles.modeSelectorCol}>
-                    <TouchableOpacity
-                      style={[
-                        styles.modeCard,
-                        {
-                          backgroundColor: complianceMode === 'scan' ? theme.badgeBg : theme.inputBg,
-                          borderColor: complianceMode === 'scan' ? theme.accent : theme.border,
-                        },
-                      ]}
-                      onPress={() => setComplianceMode('scan')}
-                    >
-                      <Ionicons name="scan-outline" size={20} color={complianceMode === 'scan' ? theme.accent : theme.textSecondary} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.modeTitle, { color: theme.textPrimary }]}>
-                          1) Vyfotit / nahrát dokumenty (AI)
-                        </Text>
-                        <Text style={[styles.modeSub, { color: theme.textSecondary }]}>
-                          Samostatný snímek pro STK a Zelenou kartu
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.modeCard,
-                        {
-                          backgroundColor: complianceMode === 'manual' ? theme.badgeBg : theme.inputBg,
-                          borderColor: complianceMode === 'manual' ? theme.accent : theme.border,
-                        },
-                      ]}
-                      onPress={() => setComplianceMode('manual')}
-                    >
-                      <Ionicons name="create-outline" size={20} color={complianceMode === 'manual' ? theme.accent : theme.textSecondary} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.modeTitle, { color: theme.textPrimary }]}>
-                          2) Zadat ručně
-                        </Text>
-                        <Text style={[styles.modeSub, { color: theme.textSecondary }]}>
-                          Vyplnit data expirace ručně nebo předvolbou
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.modeCard,
-                        {
-                          backgroundColor: complianceMode === 'later' ? theme.badgeBg : theme.inputBg,
-                          borderColor: complianceMode === 'later' ? theme.accent : theme.border,
-                        },
-                      ]}
-                      onPress={() => setComplianceMode('later')}
-                    >
-                      <Ionicons name="time-outline" size={20} color={complianceMode === 'later' ? theme.accent : theme.textSecondary} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.modeTitle, { color: theme.textPrimary }]}>
-                          3) Odložit a zadat později
-                        </Text>
-                        <Text style={[styles.modeSub, { color: theme.textSecondary }]}>
-                          Doplníte kdykoliv později v přehledu vozidla
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-
-                  {complianceMode === 'scan' &&
-                    renderScanSection(
-                      'create',
-                      stkScan,
-                      stkDate,
-                      setStkDate,
-                      insuranceScan,
-                      insuranceDate,
-                      setInsuranceDate,
-                    )}
-
-                  {complianceMode === 'manual' && (
-                    <View style={{ gap: 6 }}>
-                      <DateFormattedInput
-                        label="Platnost STK"
-                        value={stkDate}
-                        onChangeDate={setStkDate}
-                        theme={theme}
-                        isDark={isDark}
-                        presets={[
-                          { label: '+2 roky (Standard ČR)', addYears: 2 },
-                          { label: '+4 roky (Nové auto)', addYears: 4 },
-                        ]}
-                      />
-                      <DateFormattedInput
-                        label="Platnost povinného ručení"
-                        value={insuranceDate}
-                        onChangeDate={setInsuranceDate}
-                        theme={theme}
-                        isDark={isDark}
-                        presets={[
-                          { label: '+1 rok (Roční)', addYears: 1 },
-                          { label: 'Dnes', isToday: true },
-                        ]}
-                      />
-                    </View>
-                  )}
-
-                  {complianceMode === 'later' && (
-                    <View style={[styles.laterNotice, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
-                      <Ionicons name="information-circle-outline" size={20} color={theme.accent} />
-                      <Text style={[styles.laterNoticeText, { color: theme.textSecondary }]}>
-                        Vozidlo se uloží bez dat expirace. Kdykoliv v detailu auta pak můžete vybrat naskenování dokladů nebo ruční zadání.
-                      </Text>
-                    </View>
-                  )}
+                  {renderComplianceSection({
+                    mode: 'create',
+                    selectedMode: complianceMode,
+                    onSelectMode: setComplianceMode,
+                    allowLater: true,
+                    currentStkScan: stkScan,
+                    currentStkDate: stkDate,
+                    onChangeStkDate: setStkDate,
+                    currentInsScan: insuranceScan,
+                    currentInsDate: insuranceDate,
+                    onChangeInsDate: setInsuranceDate,
+                  })}
                 </ScrollView>
 
                 <View style={styles.stepActionsRow}>
@@ -1205,86 +1271,18 @@ export const GarageScreen: React.FC = () => {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 10 }}
             >
-              <View style={styles.modeSelectorCol}>
-                <TouchableOpacity
-                  style={[
-                    styles.modeCard,
-                    {
-                      backgroundColor: laterMode === 'scan' ? theme.badgeBg : theme.inputBg,
-                      borderColor: laterMode === 'scan' ? theme.accent : theme.border,
-                    },
-                  ]}
-                  onPress={() => setLaterMode('scan')}
-                >
-                  <Ionicons name="scan-outline" size={20} color={laterMode === 'scan' ? theme.accent : theme.textSecondary} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.modeTitle, { color: theme.textPrimary }]}>
-                      1) Vyfotit / nahrát dokumenty (AI)
-                    </Text>
-                    <Text style={[styles.modeSub, { color: theme.textSecondary }]}>
-                      Samostatný snímek pro STK a Zelenou kartu
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.modeCard,
-                    {
-                      backgroundColor: laterMode === 'manual' ? theme.badgeBg : theme.inputBg,
-                      borderColor: laterMode === 'manual' ? theme.accent : theme.border,
-                    },
-                  ]}
-                  onPress={() => setLaterMode('manual')}
-                >
-                  <Ionicons name="create-outline" size={20} color={laterMode === 'manual' ? theme.accent : theme.textSecondary} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.modeTitle, { color: theme.textPrimary }]}>
-                      2) Zadat ručně
-                    </Text>
-                    <Text style={[styles.modeSub, { color: theme.textSecondary }]}>
-                      Vyplnit data expirace ručně nebo předvolbou
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              {laterMode === 'scan' ? (
-                renderScanSection(
-                  'later',
-                  laterStkScan,
-                  laterStkDate,
-                  setLaterStkDate,
-                  laterInsuranceScan,
-                  laterInsuranceDate,
-                  setLaterInsuranceDate,
-                )
-              ) : (
-                <View style={{ gap: 6 }}>
-                  <DateFormattedInput
-                    label="Platnost STK"
-                    value={laterStkDate}
-                    onChangeDate={setLaterStkDate}
-                    theme={theme}
-                    isDark={isDark}
-                    presets={[
-                      { label: '+2 roky (Standard ČR)', addYears: 2 },
-                      { label: '+4 roky (Nové auto)', addYears: 4 },
-                    ]}
-                  />
-                  <DateFormattedInput
-                    label="Platnost povinného ručení"
-                    value={laterInsuranceDate}
-                    onChangeDate={setLaterInsuranceDate}
-                    theme={theme}
-                    isDark={isDark}
-                    presets={[
-                      { label: '+1 rok (Roční)', addYears: 1 },
-                      { label: 'Dnes', isToday: true },
-                    ]}
-                  />
-                </View>
-              )}
+              {renderComplianceSection({
+                mode: 'later',
+                selectedMode: laterMode,
+                onSelectMode: (next) => setLaterMode(next === 'later' ? 'manual' : next),
+                allowLater: false,
+                currentStkScan: laterStkScan,
+                currentStkDate: laterStkDate,
+                onChangeStkDate: setLaterStkDate,
+                currentInsScan: laterInsuranceScan,
+                currentInsDate: laterInsuranceDate,
+                onChangeInsDate: setLaterInsuranceDate,
+              })}
             </ScrollView>
 
             <TouchableOpacity
@@ -1669,9 +1667,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 18,
   },
+  complianceSectionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    marginBottom: 8,
+  },
   modeSelectorCol: {
     gap: 8,
-    marginBottom: 14,
+  },
+  complianceDivider: {
+    height: 1,
+    marginVertical: 14,
+  },
+  complianceInputSection: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
   },
   modeCard: {
     flexDirection: 'row',
