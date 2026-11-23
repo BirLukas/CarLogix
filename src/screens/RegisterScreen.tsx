@@ -10,12 +10,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { useAppColorScheme } from '../context/ThemeContext';
+import { VectorMeshBackground } from '../components';
 
 interface RegisterScreenProps {
   onNavigateToLogin: () => void;
@@ -23,7 +24,7 @@ interface RegisterScreenProps {
 }
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin, onBackToWelcome }) => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { signUp, signInWithGoogle, isLoading } = useAuth();
@@ -88,9 +89,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      {/* Ambient background glows */}
-      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
-      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
+      {/* Vector mesh background */}
+      <VectorMeshBackground />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -392,24 +392,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     position: 'relative',
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -60,
-    left: -40,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(42, 12, 98, 0.5)',
-  },
-  ambientRightGlow: {
-    position: 'absolute',
-    top: '30%',
-    right: -50,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: 'rgba(255, 1, 143, 0.12)',
   },
   keyboardView: {
     flex: 1,

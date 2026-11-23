@@ -1,12 +1,13 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '../constants/theme';
 import { StatusCard } from '../components';
 import { OBDService } from '../services/obd';
+import { useAppColorScheme } from '../context/ThemeContext';
 
 export const HomeScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const obdStatus = OBDService.getStatus();

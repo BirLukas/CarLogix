@@ -1,14 +1,17 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
+import { useAppColorScheme } from '../context/ThemeContext';
+import { VectorMeshBackground } from '../components';
 
 export const TermsScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
 
   return (
     <SafeAreaView edges={['bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <VectorMeshBackground />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.textPrimary }]}>

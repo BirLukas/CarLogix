@@ -8,27 +8,59 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Colors } from '../constants/theme';
 import { RootStackParamList } from '../navigation';
 import { useAuth } from '../context/AuthContext';
+import { ThemePreference, useTheme } from '../context/ThemeContext';
+import { VectorMeshBackground } from '../components';
 
 type SettingsNavProp = NativeStackNavigationProp<RootStackParamList>;
 
+const THEME_OPTIONS: Array<{
+  value: ThemePreference;
+  label: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}> = [
+  {
+    value: 'system',
+    label: 'Výchozí dle systému',
+    description: 'Automaticky se přizpůsobí nastavení vašeho zařízení',
+    icon: 'phone-portrait-outline',
+  },
+  {
+    value: 'dark',
+    label: 'Tmavý režim',
+    description: 'Neonový tmavý vzhled šetrný k očím v noci',
+    icon: 'moon-outline',
+  },
+  {
+    value: 'light',
+    label: 'Světlý režim',
+    description: 'Vysoký kontrast pro čitelnost na přímém slunci',
+    icon: 'sunny-outline',
+  },
+];
+
 export const SettingsScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const theme = isDark ? Colors.dark : Colors.light;
+  const { isDark, theme, themePreference, setThemePreference } = useTheme();
   const navigation = useNavigation<SettingsNavProp>();
   const { user, signOut } = useAuth();
 
   const [isMechanicMode, setIsMechanicMode] = useState(user?.isMechanic || false);
   const [workshopName, setWorkshopName] = useState(user?.workshopName || 'Autoservis Černík');
+  const [isThemeExpanded, setIsThemeExpanded] = useState(false);
+
+  const getThemeSubtitle = () => {
+    if (themePreference === 'system') {
+      return `Výchozí dle systému (${isDark ? 'Tmavý' : 'Světlý'})`;
+    }
+    return themePreference === 'dark' ? 'Tmavý režim (manuálně)' : 'Světlý režim (manuálně)';
+  };
 
   const handleToggleMechanic = (val: boolean) => {
     setIsMechanicMode(val);
@@ -58,9 +90,8 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      {/* Ambient glowing backdrop orbs */}
-      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
-      <View pointerEvents="none" style={[styles.ambientMidGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
+      {/* Vector mesh background */}
+      <VectorMeshBackground />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
@@ -197,22 +228,102 @@ export const SettingsScreen: React.FC = () => {
             },
           ]}
         >
-          {/* Row 1: Barevný motiv */}
-          <View style={styles.settingRowDivided}>
+          {/* Row 1: Barevný motiv (rozklikávací) */}
+          <TouchableOpacity
+            style={styles.settingRowDivided}
+            onPress={() => setIsThemeExpanded((prev) => !prev)}
+            activeOpacity={0.7}
+          >
             <View style={styles.settingTextGroup}>
               <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Barevný motiv</Text>
               <Text style={[styles.settingSub, { color: theme.textSecondary }]}>
-                {colorScheme === 'dark' ? 'Tmavý režim (dle systému)' : 'Světlý režim (dle systému)'}
+                {getThemeSubtitle()}
               </Text>
             </View>
-            <View style={[styles.themeIconBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
+            <View style={styles.themeRightGroup}>
+              <View style={[styles.themeIconBadge, { backgroundColor: theme.badgeBg, borderColor: theme.badgeBorder }]}>
+                <Ionicons
+                  name={
+                    themePreference === 'system'
+                      ? 'phone-portrait-outline'
+                      : isDark
+                      ? 'moon'
+                      : 'sunny'
+                  }
+                  size={18}
+                  color="#FF018F"
+                />
+              </View>
               <Ionicons
-                name={colorScheme === 'dark' ? 'moon' : 'sunny'}
-                size={18}
-                color="#FF018F"
+                name={isThemeExpanded ? 'chevron-up' : 'chevron-down'}
+                size={19}
+                color={theme.textSecondary}
               />
             </View>
-          </View>
+          </TouchableOpacity>
+
+          {isThemeExpanded && (
+            <View style={[styles.themePickerContainer, { borderTopColor: theme.border }]}>
+              {THEME_OPTIONS.map((option) => {
+                const isSelected = themePreference === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.themeOptionRow,
+                      {
+                        backgroundColor: isSelected
+                          ? isDark
+                            ? 'rgba(255, 1, 143, 0.12)'
+                            : 'rgba(255, 1, 143, 0.08)'
+                          : theme.inputBg,
+                        borderColor: isSelected ? '#FF018F' : theme.border,
+                      },
+                    ]}
+                    onPress={() => setThemePreference(option.value)}
+                    activeOpacity={0.75}
+                  >
+                    <View
+                      style={[
+                        styles.themeOptionIconWrap,
+                        {
+                          backgroundColor: isSelected
+                            ? '#FF018F'
+                            : isDark
+                            ? 'rgba(42, 12, 98, 0.45)'
+                            : 'rgba(100, 116, 139, 0.12)',
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={option.icon}
+                        size={17}
+                        color={isSelected ? '#FFFFFF' : theme.textSecondary}
+                      />
+                    </View>
+                    <View style={styles.themeOptionTextGroup}>
+                      <Text
+                        style={[
+                          styles.themeOptionTitle,
+                          { color: isSelected ? '#FF018F' : theme.textPrimary },
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                      <Text style={[styles.themeOptionDesc, { color: theme.textSecondary }]}>
+                        {option.description}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                      size={20}
+                      color={isSelected ? '#FF018F' : theme.textSecondary}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
 
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
@@ -279,24 +390,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     position: 'relative',
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -60,
-    right: -40,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(255, 1, 143, 0.12)',
-  },
-  ambientMidGlow: {
-    position: 'absolute',
-    top: '38%',
-    left: -70,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(42, 12, 98, 0.45)',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -430,6 +523,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
   },
+  themeRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   themeIconBadge: {
     width: 36,
     height: 36,
@@ -439,6 +537,40 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 1, 143, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  themePickerContainer: {
+    borderTopWidth: 1,
+    paddingTop: 12,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  themeOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 12,
+  },
+  themeOptionIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  themeOptionTextGroup: {
+    flex: 1,
+  },
+  themeOptionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  themeOptionDesc: {
+    fontSize: 11.5,
+    marginTop: 1,
+    lineHeight: 15,
   },
   settingTextGroup: {
     flex: 1,

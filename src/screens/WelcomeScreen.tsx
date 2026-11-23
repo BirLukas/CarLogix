@@ -9,12 +9,13 @@ import {
   Text,
   TouchableOpacity,
   View,
-  useColorScheme,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { useAppColorScheme } from '../context/ThemeContext';
+import { VectorMeshBackground } from '../components';
 
 export interface WelcomeScreenProps {
   onStartJourney: () => void;
@@ -80,7 +81,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onStartJourney,
   onNavigateToLogin,
 }) => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { width } = useWindowDimensions();
@@ -265,9 +266,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Ambient glowing backdrop blurs */}
-      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
-      <View pointerEvents="none" style={[styles.ambientBottomGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
+      {/* Vector mesh background */}
+      <VectorMeshBackground />
 
       {/* Top Header */}
       <View style={styles.header}>
@@ -398,26 +398,6 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     position: 'relative',
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -50,
-    left: -50,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(42, 12, 98, 0.4)',
-    opacity: 0.8,
-  },
-  ambientBottomGlow: {
-    position: 'absolute',
-    top: '35%',
-    right: -60,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(255, 1, 143, 0.15)',
-    opacity: 0.7,
   },
   header: {
     flexDirection: 'row',

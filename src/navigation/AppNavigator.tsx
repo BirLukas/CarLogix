@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { useAppColorScheme } from '../context/ThemeContext';
 import {
   GarageScreen,
   RefuelingScreen,
@@ -23,7 +24,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const TabNavigator: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
@@ -113,7 +114,7 @@ const TabNavigator: React.FC = () => {
 };
 
 export const AppNavigator: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { isInitializing, isAuthenticated, isEmailVerified } = useAuth();

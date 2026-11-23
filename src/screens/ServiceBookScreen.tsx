@@ -11,12 +11,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { useAppColorScheme } from '../context/ThemeContext';
 import {
   formatLogicalDate,
   formatOdometer,
@@ -25,6 +25,7 @@ import {
   ActiveVehicleBar,
   DocumentScannerModal,
   ScannedImageResult,
+  VectorMeshBackground,
 } from '../components';
 import { useVehicle } from '../context/VehicleContext';
 import { ServiceBookService, parseStrictDecimal } from '../services/records';
@@ -58,7 +59,7 @@ const DOC_TYPE_LABEL: Record<VehicleDocumentType, string> = {
 };
 
 export const ServiceBookScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { selectedVehicle, refreshVehicles } = useVehicle();
@@ -495,9 +496,8 @@ export const ServiceBookScreen: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      {/* Ambient background glows */}
-      <View style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary, opacity: 1 }]} pointerEvents="none" />
-      <View style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary, opacity: 1 }]} pointerEvents="none" />
+      {/* Vector mesh background */}
+      <VectorMeshBackground />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -1288,26 +1288,6 @@ export const ServiceBookScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -60,
-    left: '20%',
-    width: 220,
-    height: 160,
-    borderRadius: 110,
-    backgroundColor: '#2A0C62',
-    opacity: 0.45,
-  },
-  ambientRightGlow: {
-    position: 'absolute',
-    top: 120,
-    right: -40,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#FF018F',
-    opacity: 0.15,
   },
   scrollContent: {
     paddingHorizontal: 20,

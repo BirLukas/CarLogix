@@ -1,11 +1,12 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useVehicle } from '../context/VehicleContext';
+import { useAppColorScheme } from '../context/ThemeContext';
 
 export const ActiveVehicleBar: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { vehicles, selectedVehicle, setSelectedVehicle } = useVehicle();

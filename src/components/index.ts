@@ -8,3 +8,4 @@ export * from './DateFormattedInput';
 export * from './OdometerFormattedInput';
 export * from './ActiveVehicleBar';
 export * from './DocumentScannerModal';
+export * from './VectorMeshBackground';

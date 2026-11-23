@@ -7,13 +7,13 @@ import {
   Text,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { useAppColorScheme } from '../context/ThemeContext';
 
 function readUriAsBase64(uri: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -60,7 +60,7 @@ export const DocumentScannerModal: React.FC<DocumentScannerModalProps> = ({
   onClose,
   onCapture,
 }) => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
 

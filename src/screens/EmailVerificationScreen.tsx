@@ -11,15 +11,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { useAppColorScheme } from '../context/ThemeContext';
+import { VectorMeshBackground } from '../components';
 
 export const EmailVerificationScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const {
@@ -106,9 +107,8 @@ export const EmailVerificationScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      {/* Ambient glowing backdrop */}
-      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
-      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
+      {/* Vector mesh background */}
+      <VectorMeshBackground />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Verification Icon Box with CarLogix Logo */}
@@ -273,24 +273,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     position: 'relative',
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -60,
-    left: -40,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(42, 12, 98, 0.45)',
-  },
-  ambientRightGlow: {
-    position: 'absolute',
-    top: '35%',
-    right: -50,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(255, 1, 143, 0.12)',
   },
   scrollContent: {
     paddingHorizontal: 20,

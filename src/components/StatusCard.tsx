@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Colors } from '../constants/theme';
+import { useAppColorScheme } from '../context/ThemeContext';
 
 interface StatusCardProps {
   title: string;
@@ -9,7 +10,7 @@ interface StatusCardProps {
 }
 
 export const StatusCard: React.FC<StatusCardProps> = ({ title, value, subtitle }) => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
 

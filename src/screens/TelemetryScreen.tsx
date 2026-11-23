@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { OBDService } from '../services/obd';
 import { OBDLiveMetrics } from '../types';
+import { useAppColorScheme } from '../context/ThemeContext';
+import { VectorMeshBackground } from '../components';
 
 export const TelemetryScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
 
@@ -36,13 +38,8 @@ export const TelemetryScreen: React.FC = () => {
         { backgroundColor: isHudMode ? '#000000' : theme.background },
       ]}
     >
-      {/* Ambient background glows */}
-      {!isHudMode && (
-        <>
-          <View style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary, opacity: 1 }]} pointerEvents="none" />
-          <View style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary, opacity: 1 }]} pointerEvents="none" />
-        </>
-      )}
+      {/* Vector mesh background */}
+      {!isHudMode && <VectorMeshBackground />}
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header / Mode Bar */}
@@ -252,26 +249,6 @@ export const TelemetryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -60,
-    left: '20%',
-    width: 200,
-    height: 160,
-    borderRadius: 100,
-    backgroundColor: '#2A0C62',
-    opacity: 0.45,
-  },
-  ambientRightGlow: {
-    position: 'absolute',
-    top: 140,
-    right: -40,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#FF018F',
-    opacity: 0.15,
   },
   scrollContent: {
     paddingHorizontal: 20,

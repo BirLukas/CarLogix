@@ -11,7 +11,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,14 +21,16 @@ import {
   getTodayCzechDate,
   isValidDate,
   ActiveVehicleBar,
+  VectorMeshBackground,
 } from '../components';
 import { useVehicle } from '../context/VehicleContext';
+import { useAppColorScheme } from '../context/ThemeContext';
 import { FuelService, calculateFuelMetrics, parseStrictDecimal } from '../services/records';
 import { VehicleService } from '../services/vehicles';
 import { FuelEntry } from '../types';
 
 export const RefuelingScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { selectedVehicle, refreshVehicles } = useVehicle();
@@ -182,9 +183,8 @@ export const RefuelingScreen: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      {/* Ambient background glows */}
-      <View pointerEvents="none" style={[styles.ambientTopGlow, { backgroundColor: theme.ambientGlowPrimary }]} />
-      <View pointerEvents="none" style={[styles.ambientRightGlow, { backgroundColor: theme.ambientGlowSecondary }]} />
+      {/* Vector mesh background */}
+      <VectorMeshBackground />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -534,24 +534,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     position: 'relative',
-  },
-  ambientTopGlow: {
-    position: 'absolute',
-    top: -60,
-    left: -40,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(42, 12, 98, 0.45)',
-  },
-  ambientRightGlow: {
-    position: 'absolute',
-    top: '30%',
-    right: -50,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(255, 1, 143, 0.12)',
   },
   scrollContent: {
     paddingHorizontal: 16,
